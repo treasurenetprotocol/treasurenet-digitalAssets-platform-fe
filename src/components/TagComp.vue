@@ -1,6 +1,10 @@
 <template>
   <span class="tag" :style="{ color: props.iconColor, backgroundColor: props.bgColor}">
-    <!-- <template #default></template> -->
+    <!-- icon -->
+    <slot name="icon"></slot>
+
+    <!-- default -->
+    <slot></slot>
   </span>
 </template>
 
@@ -17,6 +21,15 @@ const props = defineProps<{
   font-weight: 500;
   font-size: 16px;
   border-radius: 20px;
-  background-color: red;
+
+  // :slotted(img),
+  // :slotted(span) {
+  //   vertical-align: middle;
+  // }
+
+  :slotted(img) {
+    width: 16px;
+    margin: 0 5px -2px 0;
+  }
 }
 </style>

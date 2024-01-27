@@ -23,7 +23,24 @@
           {{ networkMaps[record.network] }}
         </template>
         <template v-else-if="column.key === 'status'">
-          <Tag bgColor="#FBE9D4" iconColor="#EF903C">Aasas</Tag>
+          <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 1">
+            <template #icon>
+              <img src="@/assets/imgs/inpreview-icon.png" alt="">
+            </template>
+            <span>In review</span>
+          </Tag>
+          <Tag bgColor="rgba(28, 80, 222, .2)" iconColor="#1C50DE" v-else-if="record.status === 2">
+            <template #icon>
+              <img src="@/assets/imgs/reviewed-icon.png" alt="">
+            </template>
+            <span>Reviewed</span>
+          </Tag>
+          <Tag bgColor="rgba(116, 117, 119, .2)" iconColor="#747577" v-else>
+            <template #icon>
+              <img src="@/assets/imgs/failed-icon.png" alt="">
+            </template>
+            <span>Failed</span>
+          </Tag>
         </template>
       </template>
     </Table>
@@ -81,14 +98,14 @@ const data = [
     account: '0x27f2Eeed8a0d43eAd5DDc6eB41c172DF91740B03',
     type: 2,
     network: 2,
-    status: 1
+    status: 2
   },
   {
     key: '3',
     account: '0x27f2Eeed8a0d43eAd5DDc6eB41c172DF91740B03',
     type: 1,
     network: 1,
-    status: 1
+    status: 3
   },
 ]
 </script>
@@ -113,7 +130,7 @@ const data = [
     color: #fff;
     font-weight: 500;
     font-size: 14px;
-    border-radius: 4px;
+    border-radius: 6px;
     padding: 8px 16px;
     line-height: 18px;
     text-decoration: none;
