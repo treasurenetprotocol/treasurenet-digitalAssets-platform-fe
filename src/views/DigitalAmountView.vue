@@ -40,16 +40,25 @@
           </Tag>
         </template>
         <template v-else-if="column.key === 'operation'">
-          <a href="javascript:;" style="font-weight:500" v-if="record.status === 1">Mint TAT</a>
+          <a href="javascript:;" style="font-weight:500" v-if="record.status === 1" @click="mintTAT">Mint TAT</a>
         </template>
       </template>
     </Table>
   </main>
+
+  <Modal v-model:open="openMint" title="Mint TAT" okText="Confirm" @ok="mintTAT" centered>
+    <p class="mint-text">
+      You can mint:
+      <b>{{ numFormat(365959.45) }}</b>
+      <span>TAT</span>
+    </p>
+  </Modal>
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue'
 import Tag from '@/components/TagComp.vue'
-import { Table } from 'ant-design-vue'
+import { Table, Modal } from 'ant-design-vue'
 import { realDate, numFormat } from '@/libs/utils'
 
 const typeMaps: { [k: string]: string } = {
@@ -132,4 +141,31 @@ const data = [
     status: 1
   },
 ]
+
+// mint
+const openMint = ref<boolean>(false)
+const mintTAT = (e: MouseEvent) => {
+  console.log(e)
+  openMint.value = true
+}
 </script>
+
+<style lang="less" scoped>
+.mint-text {
+  margin: 30px 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: #242526;
+
+  b {
+    margin: 0 5px;
+    color: #1E1E1E;
+    font-weight: 500;
+  }
+
+  span {
+    font-size: 16px;
+    color: #8C8C8C;
+  }
+}
+</style>
