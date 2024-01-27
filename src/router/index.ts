@@ -26,9 +26,13 @@ const router = createRouter({
           path: "tat-details",
           component: () => import("../views/TATDetailView.vue"),
         },
+        {
+          path: "message",
+          component: () => import("../views/MessageView.vue"),
+        },
       ],
-    }
-  ]
-})
+    },
+  ],
+});
 
 export default router

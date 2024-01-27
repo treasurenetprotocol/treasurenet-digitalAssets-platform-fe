@@ -4,7 +4,7 @@
       <img src="@/assets/imgs/logo.png" alt="">
     </div>
     <div class="opera">
-      <a href="javascript:;">
+      <a href="javascript:;" @click="router.push('/manage/message')">
         <img src="@/assets/imgs/tips-none.png" alt="">
       </a>
       <span>|</span>
@@ -21,8 +21,10 @@
 </template>
 
 <script lang="ts" setup>
-// import { Button } from 'ant-design-vue'
+import { useRouter } from 'vue-router'
 import { addressCut } from '@/libs/utils'
+
+const router = useRouter()
 </script>
 
 <style lang="less" scoped>
