@@ -40,7 +40,7 @@
           </Tag>
         </template>
         <template v-else-if="column.key === 'operation'">
-          <a href="javascript:;" style="font-weight:500" v-if="record.status === 1" @click="mintTAT">Mint TAT</a>
+          <a href="javascript:;" style="font-weight:500" v-if="record.status === 1" @click="openMintTAT">Mint TAT</a>
         </template>
       </template>
     </Table>
@@ -58,8 +58,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import Tag from '@/components/TagComp.vue'
-import { Table, Modal } from 'ant-design-vue'
 import { realDate, numFormat } from '@/libs/utils'
+import { Table, Modal, message } from 'ant-design-vue'
 
 const typeMaps: { [k: string]: string } = {
   1: 'ETH',
@@ -142,11 +142,25 @@ const data = [
   },
 ]
 
-// mint
+// open mint tat
 const openMint = ref<boolean>(false)
-const mintTAT = (e: MouseEvent) => {
-  console.log(e)
-  openMint.value = true
+const openMintTAT = () => {
+  openMint.value = !openMint.value
+}
+
+// mint 
+const mintTAT = () => {
+  // mintSuccess()
+  mintFailed()
+}
+
+// mint success
+const mintSuccess = () => {
+  message.success('You have successfully mint TAT !', 10000);
+}
+// mint error
+const mintFailed = () => {
+  message.error('Failed minting TAT !', 10000);
 }
 </script>
 
