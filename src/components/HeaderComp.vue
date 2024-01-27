@@ -9,7 +9,8 @@
       </a>
       <span>|</span>
       <a href="javascript:;">
-        {{ addressCut('0xdgfdgdfgfdgdfgdfgg') }}
+        <img src="@/assets/imgs/wallet-icon.png" alt="" class="t-i">
+        <span class="t-t">{{ addressCut('0xdgfdgdfgfdgdfgdfgg') }}</span>
       </a>
       <span>|</span>
       <a href="javascript:;">
@@ -28,6 +29,8 @@ import { addressCut } from '@/libs/utils'
 .header {
   height: 48px;
   display: flex;
+  z-index: 1;
+  position: relative;
   align-items: center;
   justify-content: space-between;
   background-color: #252A3D;
@@ -48,6 +51,15 @@ import { addressCut } from '@/libs/utils'
     a {
       color: #CED0D9;
       text-decoration: none;
+
+      .t-i {
+        top: -2px;
+        position: relative;
+        margin-right: 5px;
+      }
+      .t-t {
+        padding: 0;
+      }
 
       img {
         width: 16px;
