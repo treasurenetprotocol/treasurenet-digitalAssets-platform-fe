@@ -27,9 +27,13 @@
     <div class="header-title">
       <h2>TAT Details</h2>
       <div class="choose">
-        <span>date</span>
-        <span>type</span>
-        <span>status</span>
+        <div class="item">
+          <span>Date:</span>
+          <Select style="width: 105px" v-model:value="date">
+            <Select.Option value="0">All</Select.Option>
+            <Select.Option value="1">2023/3/30</Select.Option>
+          </Select>
+        </div>
       </div>
     </div>
 
@@ -54,7 +58,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { realDate, numFormat } from '@/libs/utils'
-import { Table } from 'ant-design-vue'
+import { Table, Select } from 'ant-design-vue'
 
 const eventMaps: { [k: string]: string } = {
   1: 'ETH',
@@ -99,6 +103,9 @@ const data = [
     amount: 6789
   },
 ]
+
+// filter
+const date = ref('0')
 </script>
 
 <style lang="less" scoped>

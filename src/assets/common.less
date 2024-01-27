@@ -66,6 +66,14 @@
   color    : #C73F38;
 }
 
+:where(.css-dev-only-do-not-override-19yxfbp).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border: none;
+}
+
+:where(.css-dev-only-do-not-override-19yxfbp).ant-select-single .ant-select-selector {
+  font-size: 16px;
+}
+
 .card {
   padding      : 24px;
   background   : #fff;
@@ -86,5 +94,17 @@
     font-weight: 500;
     color      : #1E1E1E;
     line-height: 1;
+  }
+
+  .choose {
+    display: flex;
+    color: #8c8c8c;
+    font-size: 16px;
+
+    .item {
+      &:not(:last-child) {
+        margin-right: 40px;
+      }
+    }
   }
 }

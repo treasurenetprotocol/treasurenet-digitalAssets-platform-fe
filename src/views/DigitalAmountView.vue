@@ -3,9 +3,29 @@
     <div class="header-title">
       <h2>Digital Amount</h2>
       <div class="choose">
-        <span>date</span>
-        <span>type</span>
-        <span>status</span>
+        <div class="item">
+          <span>Date:</span>
+          <Select style="width: 105px" v-model:value="date">
+            <Select.Option value="0">All</Select.Option>
+            <Select.Option value="1">2023/3/30</Select.Option>
+          </Select>
+        </div>
+        <div class="item">
+          <span>Type:</span>
+          <Select style="width: 60px" v-model:value="type">
+            <Select.Option value="0">All</Select.Option>
+            <Select.Option value="1">BTC</Select.Option>
+            <Select.Option value="2">ETH</Select.Option>
+          </Select>
+        </div>
+        <div class="item">
+          <span>Status:</span>
+          <Select style="width: 90px" v-model:value="status">
+            <Select.Option value="0">All</Select.Option>
+            <Select.Option value="1">Minted</Select.Option>
+            <Select.Option value="2">Verified</Select.Option>
+          </Select>
+        </div>
       </div>
     </div>
 
@@ -59,7 +79,7 @@
 import { ref } from 'vue'
 import Tag from '@/components/TagComp.vue'
 import { realDate, numFormat } from '@/libs/utils'
-import { Table, Modal, message } from 'ant-design-vue'
+import { Table, Modal, Select, message } from 'ant-design-vue'
 
 const typeMaps: { [k: string]: string } = {
   1: 'ETH',
@@ -162,6 +182,11 @@ const mintSuccess = () => {
 const mintFailed = () => {
   message.error('Failed minting TAT !');
 }
+
+// filter
+const date = ref('0')
+const type = ref('0')
+const status = ref('0')
 </script>
 
 <style lang="less" scoped>
