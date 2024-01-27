@@ -156,11 +156,11 @@ const mintTAT = () => {
 
 // mint success
 const mintSuccess = () => {
-  message.success('You have successfully mint TAT !', 10000);
+  message.success('You have successfully mint TAT !');
 }
 // mint error
 const mintFailed = () => {
-  message.error('Failed minting TAT !', 10000);
+  message.error('Failed minting TAT !');
 }
 </script>
 
