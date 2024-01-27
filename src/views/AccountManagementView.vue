@@ -1,6 +1,6 @@
 <template>
   <main class="card account">
-    <div class="title">
+    <div class="header-title">
       <h2>Account Management</h2>
       <a href="javascript:;" class="n-btn">
         <img src="@/assets/imgs/userbind-icon.png" alt="">
@@ -112,20 +112,6 @@ const data = [
 
 <style lang="less" scoped>
 .account {
-  .title {
-    display: flex;
-    margin-bottom: 18px;
-    align-items: center;
-    justify-content: space-between;
-
-    h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 500;
-      color: #1E1E1E;
-      line-height: 1;
-    }
-  }
   .n-btn {
     color: #fff;
     font-weight: 500;
