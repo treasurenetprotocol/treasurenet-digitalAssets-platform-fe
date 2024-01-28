@@ -58,7 +58,10 @@ const connect = async () => {
   if(res?.errmsg) {
     loginStatus.value = 'error'
   }else {
+    // login success
     console.log(res)
+    // todo: request sign data/sign/request login/storage auth token
+    localStorage.setItem('logined', 'yes')
   }
 }
 </script>

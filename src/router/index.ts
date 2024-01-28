@@ -7,12 +7,18 @@ const router = createRouter({
   routes: [
     {
       path: "/",
+      redirect: "/login",
+    },
+    {
+      path: "/login",
       name: "login",
       component: Login,
+      meta: { needLogin: false },
     },
     {
       path: "/manage",
       component: Manage,
+      meta: { needLogin: true },
       children: [
         {
           path: "account",
@@ -33,6 +39,20 @@ const router = createRouter({
       ],
     },
   ],
-});
+})
+
+router.beforeEach((to, from, next) => {
+  // Requires authorization to access
+  if (to.meta.needLogin) {
+    const logined = localStorage.getItem("logined")
+    if(logined === 'yes') {
+      next()
+    }else {
+      next({ path: '/login' })
+    }
+  } else {
+    next()
+  }
+})
 
 export default router
