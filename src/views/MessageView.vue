@@ -40,15 +40,27 @@
         </template>
       </Collapse.Panel>
     </Collapse>
+
+    <div style="text-align: right;">
+      <Pagination
+        v-model:current="page"
+        v-model:page-size="pageSize"
+        :total="total"
+        :show-total="(total, range) => `Total of ${total} messages`"
+      />
+    </div>
   </main>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { Collapse } from 'ant-design-vue'
+import { Collapse, Pagination } from 'ant-design-vue'
 import { CaretRightOutlined } from '@ant-design/icons-vue'
 
 const activeKey = ref([])
+const page = ref(1)
+const pageSize = ref(10)
+const total = ref(97)
 </script>
 
 <style lang="less" scoped>
