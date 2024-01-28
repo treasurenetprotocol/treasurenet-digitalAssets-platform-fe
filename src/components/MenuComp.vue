@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { Menu } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 
@@ -47,6 +47,12 @@ const onMenuClick = ({ key }: any) => {
   setMenuKeys(key)
   router.push(key)
 }
+
+watch(() => router.currentRoute.value.path, (newPath) => {
+  setMenuKeys(newPath)
+  selectedKeys.value = [newPath]
+}, { immediate: true })
+
 
 onMounted(() => {
   setMenuKeys(router.currentRoute.value.path)
