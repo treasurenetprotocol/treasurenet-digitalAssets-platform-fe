@@ -2,7 +2,7 @@
   <main class="card account">
     <div class="header-title">
       <h2>Account Management</h2>
-      <a href="javascript:;" class="n-btn">
+      <a href="javascript:;" class="n-btn" @click="openBindBox">
         <img src="@/assets/imgs/userbind-icon.png" alt="">
         <span>Bind account</span>
       </a>
@@ -45,12 +45,39 @@
       </template>
     </Table>
   </main>
+
+  <Modal v-model:open="openBind" title="Bind account" :footer="null" centered>
+    <div class="bind-item">
+      <div class="item">
+        <img src="@/assets/imgs/eth-icon.png" alt="">
+        <h4>Ethereum system</h4>
+        <span>Verification required</span>
+        <div class="btn">
+          <a href="javascript:;" class="n-btn" @click="bindAccount">
+            <span>Unbind</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="item">
+        <img src="@/assets/imgs/btc-icon.png" alt="">
+        <h4>Ethereum system</h4>
+        <span>Verification required</span>
+        <div class="btn">
+          <a href="javascript:;" class="n-btn" @click="bindAccount">
+            <span>Unbind</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </Modal>
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue'
 import Tag from '@/components/TagComp.vue'
 import { addressCut } from '@/libs/utils'
-import { Table, Tooltip } from 'ant-design-vue'
+import { Table, Tooltip, Modal, message } from 'ant-design-vue'
 
 const typeMaps: { [k: string]: string } = {
   1: 'Ethereum system',
@@ -108,28 +135,75 @@ const data = [
     status: 3
   },
 ]
+
+// open bind account
+const openBind = ref<boolean>(false)
+const openBindBox = () => {
+  openBind.value = !openBind.value
+}
+
+// bind
+const bindAccount = () => {
+  // message.error('Failed minting TAT !');
+  message.success('You have successfully mint TAT !');
+}
 </script>
 
 <style lang="less" scoped>
-.account {
-  .n-btn {
-    color: #fff;
-    font-weight: 500;
-    font-size: 14px;
-    border-radius: 6px;
-    padding: 8px 16px;
-    line-height: 18px;
-    text-decoration: none;
-    background-color: #225BFC;
+.n-btn {
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px;
+  line-height: 18px;
+  text-decoration: none;
+  background-color: #225BFC;
+
+  img {
+    width: 14px;
+    margin-right: 8px;
+  }
+
+  img,
+  span {
+    vertical-align: middle;
+  }
+}
+
+.bind-item {
+  display: flex;
+  padding: 50px 65px 120px;
+  justify-content: space-between;
+
+  .item {
+    padding: 20px 25px;
+    border-radius: 4px;
+    text-align: center;
+    background: #FAFBFC;
+    border: 1px solid #EDEEEF;
 
     img {
-      width: 14px;
-      margin-right: 8px;
+      width: 44px;
     }
 
-    img,
-    span {
-      vertical-align: middle;
+    h4 {
+      font-size: 13px;
+      font-weight: 500;
+      color: #242526;
+      margin: 5px 0 8px 0;
+    }
+
+    >span {
+      font-size: 11px;
+      font-weight: 400;
+      color: #8C8C8C;
+      line-height: 1;
+      vertical-align: top;
+    }
+
+    .btn {
+      margin-top: 25px;
     }
   }
 }
