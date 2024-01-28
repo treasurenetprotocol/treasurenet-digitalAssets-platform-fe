@@ -53,7 +53,7 @@
         <h4>Ethereum system</h4>
         <span>Verification required</span>
         <div class="btn">
-          <a href="javascript:;" class="n-btn" @click="bindAccount">
+          <a href="javascript:;" class="n-btn" @click="openBindInfoBox('eth')">
             <span>Bind</span>
           </a>
         </div>
@@ -64,10 +64,50 @@
         <h4>Ethereum system</h4>
         <span>Verification required</span>
         <div class="btn">
-          <a href="javascript:;" class="n-btn" @click="bindAccount">
+          <a href="javascript:;" class="n-btn" @click="openBindInfoBox('btc')">
             <span>Bind</span>
           </a>
         </div>
+      </div>
+    </div>
+  </Modal>
+
+  <Modal v-model:open="openBindInfo" title="Bind account" ok-text="To verify" @ok="toSubmitBindInfo" centered>
+    <div class="bind-item info-box">
+      <div class="item">
+        <img src="@/assets/imgs/tn-icon.png" alt="">
+        <h4>TN Account</h4>
+        <span>0xF5ecac…E9D5</span>
+      </div>
+      <img src="@/assets/imgs/switch-icon.png" alt="" class="switch-icon">
+      <div class="item">
+        <img src="@/assets/imgs/eth-icon.png" alt="" v-if="bindType === 'eth'">
+        <img src="@/assets/imgs/btc-icon.png" alt="" v-else>
+        <h4>{{ bindType === 'eth' ? 'Ethereum' : 'Bitcoin' }}</h4>
+        <span>&nbsp;</span>
+      </div>
+    </div>
+    <p class="note">
+      <span>Note:</span>
+      <span>You need to transfer some Tokens to the designated account to prove the authenticity of your account, and all will be returned after passing the review!</span>
+    </p>
+    <div class="ipt">
+      <p>
+        <span>*</span>
+        Add Account
+      </p>
+      <Input v-model:value="account" placeholder="Please enter your account" />
+    </div>
+    <div class="transfer">
+      <div class="rule">
+        Transfer:
+        <b>0.00001</b>
+        <span>{{ bindType === 'eth' ? 'ETH' : 'BTC' }}</span>
+      </div>
+      <div class="ads">
+        To:
+        <b>{{ bindType === 'eth' ? addressCut(ethVerifyAddr) : addressCut(btcVerifyAddr) }}</b>
+        <img src="@/assets/imgs/copy-icon.png" alt="" @click="copyAddress(bindType === 'eth' ? ethVerifyAddr : btcVerifyAddr)">
       </div>
     </div>
   </Modal>
@@ -75,9 +115,13 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
+import copy from 'copy-to-clipboard'
 import Tag from '@/components/TagComp.vue'
 import { addressCut } from '@/libs/utils'
-import { Table, Tooltip, Modal, message } from 'ant-design-vue'
+import { Table, Tooltip, Modal, Input, message } from 'ant-design-vue'
+
+const ethVerifyAddr = '0x1111111254EEB25477B68fb85Ed929f73A960582'
+const btcVerifyAddr = 'bc1qf3uwcxaz779nxedw0wry89v9cjh9w2xylnmqc3'
 
 const typeMaps: { [k: string]: string } = {
   1: 'Ethereum system',
@@ -136,16 +180,62 @@ const data = [
   },
 ]
 
-// open bind account
+// open bind account(choose network)
 const openBind = ref<boolean>(false)
 const openBindBox = () => {
   openBind.value = !openBind.value
 }
 
-// bind
-const bindAccount = () => {
-  // message.error('Failed minting TAT !');
-  message.success('You have successfully mint TAT !');
+// open bind account
+const account = ref('')
+const bindType = ref('eth')
+const openBindInfo = ref(true)
+const openBindInfoBox = (type: string) => {
+  openBindBox()
+  bindType.value = type
+  openBindInfo.value = !openBindInfo.value
+}
+
+// submit bind info
+const toSubmitBindInfo = () => {
+  const address = account.value
+  // address verify
+  if(!address) {
+    message.error('Please enter your account')
+    return
+  }
+
+  if(bindType.value === 'eth') {
+    if(!address.startsWith('0x') || address.length !== 42) {
+      message.error('Please enter the correct ETH address')
+      return
+    }
+  }
+
+  if(bindType.value === 'btc') {
+    if(address.startsWith('1') || address.startsWith('3')) {
+      if(address.length !== 34) {
+        message.error('Please enter the correct BTC address')
+        return
+      }
+    }else if (address.startsWith('bc1')) {
+      if(address.length !== 42) {
+        message.error('Please enter the correct BTC address')
+        return
+      }
+    }else {
+      message.error('Please enter the correct BTC address')
+      return
+    }
+  }
+
+  // todo: submit request
+  message.success('Submitted successfully, pending verification !')
+}
+
+const copyAddress = (addr: string) => {
+  copy(addr)
+  message.success('Copy address success!')
 }
 </script>
 
@@ -173,10 +263,16 @@ const bindAccount = () => {
 
 .bind-item {
   display: flex;
+  align-items: center;
   padding: 50px 65px 120px;
   justify-content: space-between;
 
+  &.info-box {
+    padding-bottom: 16px;
+  }
+
   .item {
+    min-width: 90px;
     padding: 20px 25px;
     border-radius: 4px;
     text-align: center;
@@ -204,6 +300,66 @@ const bindAccount = () => {
 
     .btn {
       margin-top: 25px;
+    }
+  }
+
+  .switch-icon {
+    width: 16px;
+    height: 15px;
+  }
+}
+
+.note {
+  margin: 0 0 24px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #8C8C8C;
+  line-height: 28px;
+  display: flex;
+  justify-content: space-between;
+
+  >span:first-child {
+    padding-right: 5px;
+  }
+}
+
+.ipt {
+  margin-bottom: 24px;
+
+  >p {
+    font-size: 18px;
+    font-weight: 400;
+    color: #242526;
+    margin: 0 0 5px;
+
+    span {
+      color: #F5222D;
+    }
+  }
+}
+
+.transfer {
+  font-size: 18px;
+  font-weight: 400;
+  color: #242526;
+
+  b {
+    font-weight: 500;
+    color: #1E1E1E;
+    padding: 0 5px;
+  }
+
+  span {
+    font-size: 16px;
+    color: #8C8C8C;
+  }
+
+  .ads {
+    margin: 24px 0;
+
+    img {
+      width: 14px;
+      cursor: pointer;
     }
   }
 }
