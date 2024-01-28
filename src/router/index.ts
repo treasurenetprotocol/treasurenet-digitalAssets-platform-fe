@@ -43,15 +43,21 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   // Requires authorization to access
-  if (to.meta.needLogin) {
-    const logined = localStorage.getItem("logined")
-    if(logined === 'yes') {
-      next()
+  const logined = localStorage.getItem("logined")
+  // logined
+  if (logined === "yes") {
+    if(!to.meta.needLogin) {
+      next({ path: "/manage/account" })
     }else {
-      next({ path: '/login' })
+      next()
     }
   } else {
-    next()
+    // unlogin
+    if(to.meta.needLogin) {
+      next({ path: "/login" })
+    }else {
+      next()
+    }
   }
 })
 
