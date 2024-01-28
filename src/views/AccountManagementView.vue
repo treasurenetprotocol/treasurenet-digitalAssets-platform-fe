@@ -54,7 +54,7 @@
         <span>Verification required</span>
         <div class="btn">
           <a href="javascript:;" class="n-btn" @click="bindAccount">
-            <span>Unbind</span>
+            <span>Bind</span>
           </a>
         </div>
       </div>
@@ -65,7 +65,7 @@
         <span>Verification required</span>
         <div class="btn">
           <a href="javascript:;" class="n-btn" @click="bindAccount">
-            <span>Unbind</span>
+            <span>Bind</span>
           </a>
         </div>
       </div>
