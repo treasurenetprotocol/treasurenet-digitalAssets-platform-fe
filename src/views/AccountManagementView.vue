@@ -189,7 +189,7 @@ const openBindBox = () => {
 // open bind account
 const account = ref('')
 const bindType = ref('eth')
-const openBindInfo = ref(true)
+const openBindInfo = ref(false)
 const openBindInfoBox = (type: string) => {
   openBindBox()
   bindType.value = type
