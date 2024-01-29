@@ -43,6 +43,7 @@
 
     <div style="text-align: right;">
       <Pagination
+        show-size-changer
         v-model:current="page"
         v-model:page-size="pageSize"
         :total="total"
@@ -53,14 +54,25 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getMessageList } from '@/api'
 import { Collapse, Pagination } from 'ant-design-vue'
 import { CaretRightOutlined } from '@ant-design/icons-vue'
 
 const activeKey = ref([])
 const page = ref(1)
-const pageSize = ref(10)
 const total = ref(97)
+const pageSize = ref(10)
+const msgList = ref<any[]>([])
+const getList = async (page: number, pageSize: number) => {
+  const list = await getMessageList(page, pageSize)
+  total.value = list.result.total
+  msgList.value = list.result.list
+}
+
+onMounted(async () => {
+  await getList(page.value, pageSize.value)
+})
 </script>
 
 <style lang="less" scoped>

@@ -245,11 +245,11 @@ const copyAddress = (addr: string) => {
   message.success('Copy address success!')
 }
 
-const accList = ref<any[]>([])
 const page = ref(1)
 const total = ref(0)
 const pageSize = ref(10)
 const listLoading = ref(false)
+const accList = ref<any[]>([])
 const getList = async (page: number, pageSize: number) => {
   listLoading.value = true
   const list = await getAccountList(page, pageSize)
