@@ -8,7 +8,7 @@
       </a>
     </div>
 
-    <Table :columns="columns" :data-source="data">
+    <Table :columns="columns" :data-source="accList" :pagination="false" :loading="{ indicator, spinning: listLoading }">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'account'">
           <Tooltip>
@@ -17,19 +17,19 @@
           </Tooltip>
         </template>
         <template v-else-if="column.key === 'type'">
-          {{ typeMaps[record.type] }}
+          {{ accountTypeMaps[record.type] }}
         </template>
         <template v-else-if="column.key === 'network'">
-          {{ networkMaps[record.network] }}
+          {{ networkMaps[record.type] }}
         </template>
         <template v-else-if="column.key === 'status'">
-          <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 1">
+          <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 0 || record.status === 1 || record.status === 2 || record.status === 3 || record.status === 4">
             <template #icon>
               <img src="@/assets/imgs/inpreview-icon.png" alt="">
             </template>
             <span>In review</span>
           </Tag>
-          <Tag bgColor="rgba(28, 80, 222, .2)" iconColor="#1C50DE" v-else-if="record.status === 2">
+          <Tag bgColor="rgba(28, 80, 222, .2)" iconColor="#1C50DE" v-else-if="record.status === 5">
             <template #icon>
               <img src="@/assets/imgs/reviewed-icon.png" alt="">
             </template>
@@ -44,6 +44,17 @@
         </template>
       </template>
     </Table>
+
+    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+      <Pagination
+        show-size-changer
+        v-model:current="page"
+        v-model:page-size="pageSize"
+        :total="total"
+        :show-total="(total, range) => `Total of ${total} messages`"
+        @change="(page: number, pageSize: number) => getList(page, pageSize)"
+      />
+    </div>
   </main>
 
   <Modal v-model:open="openBind" title="Bind account" :footer="null" centered>
@@ -72,7 +83,12 @@
     </div>
   </Modal>
 
-  <Modal v-model:open="openBindInfo" title="Bind account" ok-text="To verify" @ok="toSubmitBindInfo" centered>
+  <Modal v-model:open="openBindInfo" title="Bind account" centered>
+    <template #footer>
+      <Button @click="openBindInfo = false">Cancel</Button>
+      <Button type="primary" :loading="verifyLoading" @click="toSubmitBindInfo">To verify</Button>
+    </template>
+
     <div class="bind-item info-box">
       <div class="item">
         <img src="@/assets/imgs/tn-icon.png" alt="">
@@ -114,24 +130,24 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { h, ref, onMounted } from 'vue'
 import copy from 'copy-to-clipboard'
 import Tag from '@/components/TagComp.vue'
 import { addressCut } from '@/libs/utils'
-import { Table, Tooltip, Modal, Input, message } from 'ant-design-vue'
+import { getAccountList, addAccount } from '@/api'
+import { accountTypeMaps, networkMaps } from '@/enums'
+import { LoadingOutlined } from '@ant-design/icons-vue'
+import { Table, Tooltip, Modal, Input, Button, Pagination, message } from 'ant-design-vue'
 
-const ethVerifyAddr = '0x1111111254EEB25477B68fb85Ed929f73A960582'
-const btcVerifyAddr = 'bc1qf3uwcxaz779nxedw0wry89v9cjh9w2xylnmqc3'
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '40px',
+  },
+  spin: true,
+})
 
-const typeMaps: { [k: string]: string } = {
-  1: 'Ethereum system',
-  2: 'Bitcoin system'
-}
-
-const networkMaps: { [k: string]: string } = {
-  1: 'Ethereum',
-  2: 'Bitcoin system'
-}
+const ethVerifyAddr = '0xc508bfC41806b79cFdf8943Fb7F35885541FA808'
+const btcVerifyAddr = 'bc1p3nd562xtem0vrzu7qltljv0qmstqsx2r2yzektl834jvvtg5cvfq89g4wp'
 
 const columns = [
   {
@@ -156,30 +172,6 @@ const columns = [
   }
 ]
 
-const data = [
-  {
-    key: '1',
-    account: '0x27f2Eeed8a0d43eAd5DDc6eB41c172DF91740B03',
-    type: 1,
-    network: 1,
-    status: 1
-  },
-  {
-    key: '2',
-    account: '0x27f2Eeed8a0d43eAd5DDc6eB41c172DF91740B03',
-    type: 2,
-    network: 2,
-    status: 2
-  },
-  {
-    key: '3',
-    account: '0x27f2Eeed8a0d43eAd5DDc6eB41c172DF91740B03',
-    type: 1,
-    network: 1,
-    status: 3
-  },
-]
-
 // open bind account(choose network)
 const openBind = ref<boolean>(false)
 const openBindBox = () => {
@@ -192,12 +184,14 @@ const bindType = ref('eth')
 const openBindInfo = ref(false)
 const openBindInfoBox = (type: string) => {
   openBindBox()
+  account.value = ''
   bindType.value = type
   openBindInfo.value = !openBindInfo.value
 }
 
 // submit bind info
-const toSubmitBindInfo = () => {
+const verifyLoading = ref(false)
+const toSubmitBindInfo = async () => {
   const address = account.value
   // address verify
   if(!address) {
@@ -218,25 +212,55 @@ const toSubmitBindInfo = () => {
         message.error('Please enter the correct BTC address')
         return
       }
-    }else if (address.startsWith('bc1')) {
+    }else if (address.startsWith('bc1q')) {
       if(address.length !== 42) {
         message.error('Please enter the correct BTC address')
         return
       }
-    }else {
+    } else if (address.startsWith('bc1p')) {
+      if (address.length !== 62) {
+        message.error('Please enter the correct BTC address')
+        return
+      }
+    } else {
       message.error('Please enter the correct BTC address')
       return
     }
   }
 
-  // todo: submit request
-  message.success('Submitted successfully, pending verification !')
+  verifyLoading.value = true
+  const addRes = await addAccount({ type: bindType.value === 'eth' ? '0' : '1', account: address })
+  verifyLoading.value = false
+  if(addRes.code === '0') {
+    openBindInfo.value = false
+    message.success('Submitted successfully, pending verification !')
+    await getList(page.value, pageSize.value)
+  }else {
+    message.error(addRes.error)
+  }
 }
 
 const copyAddress = (addr: string) => {
   copy(addr)
   message.success('Copy address success!')
 }
+
+const accList = ref<any[]>([])
+const page = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const listLoading = ref(false)
+const getList = async (page: number, pageSize: number) => {
+  listLoading.value = true
+  const list = await getAccountList(page, pageSize)
+  total.value = list.result.total
+  accList.value = list.result.list
+  listLoading.value = false
+}
+
+onMounted(async () => {
+  await getList(page.value, pageSize.value)
+})
 </script>
 
 <style lang="less" scoped>

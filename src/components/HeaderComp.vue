@@ -25,6 +25,7 @@ import { ref, onMounted } from 'vue'
 import { getUserInfo } from '@/api'
 import { useRouter } from 'vue-router'
 import { addressCut } from '@/libs/utils'
+import { message } from 'ant-design-vue'
 
 const router = useRouter()
 
@@ -36,7 +37,12 @@ const logout = () => {
 const userInfo = ref<any>({})
 onMounted(async () => {
   const user = await getUserInfo()
-  userInfo.value = user.result
+  if(user.code === '-5') {
+    message.error(user.error)
+    logout()
+  }else {
+    userInfo.value = user.result
+  }
 })
 </script>
 
