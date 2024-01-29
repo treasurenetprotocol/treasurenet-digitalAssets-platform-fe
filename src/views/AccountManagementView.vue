@@ -247,8 +247,8 @@ const copyAddress = (addr: string) => {
 
 const accList = ref<any[]>([])
 const page = ref(1)
-const pageSize = ref(10)
 const total = ref(0)
+const pageSize = ref(10)
 const listLoading = ref(false)
 const getList = async (page: number, pageSize: number) => {
   listLoading.value = true
