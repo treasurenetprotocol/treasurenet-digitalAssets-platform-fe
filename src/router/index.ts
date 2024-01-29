@@ -43,9 +43,9 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   // Requires authorization to access
-  const logined = localStorage.getItem("logined")
+  const logined = localStorage.getItem("tn_jwt");
   // logined
-  if (logined === "yes") {
+  if (logined) {
     if(!to.meta.needLogin) {
       next({ path: "/manage/account" })
     }else {

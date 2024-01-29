@@ -25,7 +25,7 @@
           <div class="has-status">
             <img src="@/assets/imgs/login-error.png" alt="">
             <h6>Error connect !</h6>
-            <p>The connection attempt failed. Please click tryagain and follow the steps to connect in youwalle</p>
+            <p>The connection attempt failed. Please click tryagain and follow the steps to connect in you wallet</p>
             <a href="javascript:;" class="rewallet" @click="connect">
               <img src="@/assets/imgs/rewallet.png" alt="">
               <span>Reselect wallet</span>
@@ -39,9 +39,13 @@
 
 <script lang="ts" setup>
 import { h, ref } from 'vue'
-import { CONNECT_WALLET } from '@/libs/web3'
+import { useRouter } from 'vue-router'
 import { Spin } from 'ant-design-vue'
+import { getHexMsg, login } from '@/api'
+import { CONNECT_WALLET } from '@/libs/web3'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+
+const router = useRouter()
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -59,9 +63,24 @@ const connect = async () => {
     loginStatus.value = 'error'
   }else {
     // login success
-    console.log(res)
-    // todo: request sign data/sign/request login/storage auth token
-    localStorage.setItem('logined', 'yes')
+    const account = await res?.web3?.eth.getAccounts() || []
+    const hexRes = await getHexMsg(account[0])
+    if(hexRes.code === '0') {
+      try {
+        const signature = await (window as any).ethereum.request({
+          method: 'personal_sign',
+          params: [hexRes.result.hexMsg, account[0]]
+        })
+
+        const loginRes = await login({ address: account[0], signature })
+        if(loginRes.code === '0') {
+          localStorage.setItem('tn_jwt', loginRes.result)
+          router.push({ path: '/manage/account' })
+        }
+      }catch(err: any) {
+        loginStatus.value = 'error'
+      }
+    }
   }
 }
 </script>

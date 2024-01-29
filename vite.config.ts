@@ -18,4 +18,13 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        secure: false,
+        changeOrigin: true,
+        target: "https://124.70.23.119:3045"
+      },
+    },
+  },
 });

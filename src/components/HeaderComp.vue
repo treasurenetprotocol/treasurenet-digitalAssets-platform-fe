@@ -10,10 +10,10 @@
       <span>|</span>
       <a href="javascript:;">
         <img src="@/assets/imgs/wallet-icon.png" alt="" class="t-i">
-        <span class="t-t">{{ addressCut('0xdgfdgdfgfdgdfgdfgg') }}</span>
+        <span class="t-t">{{ addressCut(userInfo.tnEthAccount) }}</span>
       </a>
       <span>|</span>
-      <a href="javascript:;">
+      <a href="javascript:;" @click="logout">
         <img src="@/assets/imgs/logout.png" alt="">
       </a>
     </div>
@@ -21,10 +21,23 @@
 </template>
 
 <script lang="ts" setup>
+import { ref, onMounted } from 'vue'
+import { getUserInfo } from '@/api'
 import { useRouter } from 'vue-router'
 import { addressCut } from '@/libs/utils'
 
 const router = useRouter()
+
+const logout = () => {
+  router.push({ path: '/' })
+  localStorage.removeItem('tn_jwt')
+}
+
+const userInfo = ref<any>({})
+onMounted(async () => {
+  const user = await getUserInfo()
+  userInfo.value = user.result
+})
 </script>
 
 <style lang="less" scoped>
