@@ -1,5 +1,5 @@
 <template>
-  <main class="card">
+  <main class="card message">
     <div class="header-title">
       <h2>System messages</h2>
       <!-- <a href="javascript:;" class="n-btn">
@@ -12,62 +12,61 @@
       <template #expandIcon="panel">
         <CaretRightOutlined :rotate="panel?.isActive ? 90 : 0" />
       </template>
-      <Collapse.Panel key="1" header="The oil quality has passed the review, and the validity of the white list has been increased by 365 days!">
+
+      <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title">
         <div class="content">
           <p class="title">From: Liu Shanghai</p>
-          <p>Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.</p>
+          <pre>{{ m.content }}</pre>
         </div>
         <template #extra>
-          <span class="extra-text">6 Days ago</span>
-        </template>
-      </Collapse.Panel>
-      <Collapse.Panel key="2" header="The oil quality has passed the review, and the validity of the white list has been increased by 365 days!">
-        <div class="content">
-          <p class="title">From: Liu Shanghai</p>
-          <p>Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.</p>
-        </div>
-        <template #extra>
-          <span class="extra-text">6 Days ago</span>
-        </template>
-      </Collapse.Panel>
-      <Collapse.Panel key="3" header="The oil quality has passed the review, and the validity of the white list has been increased by 365 days!">
-        <div class="content">
-          <p class="title">From: Liu Shanghai</p>
-          <p>Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.Text localization and its recognition in images was important for searching information in digital photo archives, video databases and web sites.</p>
-        </div>
-        <template #extra>
-          <span class="extra-text">6 Days ago</span>
+          <span class="extra-text">{{ formatDate(m.timestamp) }}</span>
         </template>
       </Collapse.Panel>
     </Collapse>
 
-    <div style="text-align: right;">
+    <div style="text-align: right;" v-if="total > pageSize">
       <Pagination
         show-size-changer
         v-model:current="page"
         v-model:page-size="pageSize"
         :total="total"
         :show-total="(total, range) => `Total of ${total} messages`"
+        @change="(page: number, pageSize: number) => getList(page, pageSize)"
       />
+    </div>
+
+    <div class="loading-box" v-show="listLoading">
+      <Spin :indicator="indicator" />
     </div>
   </main>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { h, ref, onMounted } from 'vue'
 import { getMessageList } from '@/api'
-import { Collapse, Pagination } from 'ant-design-vue'
-import { CaretRightOutlined } from '@ant-design/icons-vue'
+import { formatDate } from '@/libs/utils'
+import { Collapse, Pagination, Spin } from 'ant-design-vue'
+import { CaretRightOutlined, LoadingOutlined } from '@ant-design/icons-vue'
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '40px',
+  },
+  spin: true,
+})
 
 const activeKey = ref([])
 const page = ref(1)
-const total = ref(97)
+const total = ref(0)
 const pageSize = ref(10)
+const listLoading = ref(false)
 const msgList = ref<any[]>([])
 const getList = async (page: number, pageSize: number) => {
+  listLoading.value = true
   const list = await getMessageList(page, pageSize)
   total.value = list.result.total
   msgList.value = list.result.list
+  listLoading.value = false
 }
 
 onMounted(async () => {
@@ -76,6 +75,17 @@ onMounted(async () => {
 </script>
 
 <style lang="less" scoped>
+.message {
+  position: relative;
+}
+
+.loading-box {
+  top: 200px;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+}
+
 .extra-text {
   font-size: 14px;
   font-weight: 400;
@@ -90,6 +100,11 @@ onMounted(async () => {
     font-weight: 400;
     color: #8C8C8C;
     margin-top: 0;
+  }
+
+  pre {
+    margin: 0;
+    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';
   }
 }
 </style>
