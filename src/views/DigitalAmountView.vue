@@ -4,11 +4,8 @@
       <h2>Digital Amount</h2>
       <div class="choose">
         <div class="item">
-          <span>Date:</span>
-          <Select style="width: 105px" v-model:value="date">
-            <Select.Option value="0">All</Select.Option>
-            <Select.Option value="1">2023/3/30</Select.Option>
-          </Select>
+          <span style="margin-right: 5px;">Date:</span>
+          <RangePicker v-model:value="date" @change="dateChange" format="YYYY/MM/DD" />
         </div>
         <div class="item">
           <span>Type:</span>
@@ -88,12 +85,14 @@
 </template>
 
 <script lang="ts" setup>
+import type { Dayjs } from 'dayjs'
 import { h, ref, onMounted } from 'vue'
 import { getBlockList } from '@/api'
 import Tag from '@/components/TagComp.vue'
 import { realDate, numFormat } from '@/libs/utils'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { Table, Modal, Select, Pagination, message } from 'ant-design-vue'
+import { Table, Modal, Select, RangePicker, Pagination, message } from 'ant-design-vue'
+type RangeValue = [Dayjs, Dayjs]
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -172,18 +171,24 @@ const mintFailed = () => {
 }
 
 // filter
-const date = ref('0')
+const date = ref<RangeValue>()
 const type = ref('9')
 const status = ref('9')
+const dateChange = async (d: any, dstr: [string, string]) => {
+  await getList('1', '9', '9', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]))
+}
 
 const page = ref(1)
 const total = ref(0)
 const pageSize = ref(10)
 const listLoading = ref(false)
 const diaList = ref<any[]>([])
-const getList = async (queryType: string, type: string, status: string, page: number, pageSize: number) => {
+const getList = async (queryType: string, type: string, status: string, page: number, pageSize: number, dateFrom?: number, dateTo?: number) => {
   listLoading.value = true
-  const list = await getBlockList({ queryType, type, status, page, pageSize })
+  const ps: any = { queryType, type, status, page, pageSize }
+  dateFrom && (ps.dateFrom = dateFrom)
+  dateTo && (ps.dateTo = dateTo)
+  const list = await getBlockList(ps)
   diaList.value = list.result.list
   total.value = list.result.total
   listLoading.value = false
