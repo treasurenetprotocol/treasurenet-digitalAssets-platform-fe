@@ -29,3 +29,8 @@ export async function getMessageList(page: number = 1, pageSize: number = 20): P
   const res = await http.get("/api/messages/list", { page, pageSize });
   return await Promise.resolve(res)
 }
+
+export async function getBlockList(params: { queryType: string, type: string, status: string, page: number, pageSize: number }): Promise<any> {
+  const res = await http.get("/api/block/list", params);
+  return await Promise.resolve(res);
+}

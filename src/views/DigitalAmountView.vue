@@ -12,24 +12,24 @@
         </div>
         <div class="item">
           <span>Type:</span>
-          <Select style="width: 60px" v-model:value="type">
-            <Select.Option value="0">All</Select.Option>
+          <Select style="width: 80px" v-model:value="type" @change="getList('1', type, status, page, pageSize)">
+            <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="1">BTC</Select.Option>
-            <Select.Option value="2">ETH</Select.Option>
+            <Select.Option value="0">ETH</Select.Option>
           </Select>
         </div>
         <div class="item">
           <span>Status:</span>
-          <Select style="width: 90px" v-model:value="status">
-            <Select.Option value="0">All</Select.Option>
-            <Select.Option value="1">Minted</Select.Option>
+          <Select style="width: 120px" v-model:value="status" @change="getList('1', type, status, page, pageSize)">
+            <Select.Option value="9">ALL</Select.Option>
+            <Select.Option value="3">Minted</Select.Option>
             <Select.Option value="2">Verified</Select.Option>
           </Select>
         </div>
       </div>
     </div>
 
-    <Table :columns="columns" :data-source="data">
+    <Table :columns="columns" :data-source="diaList" :pagination="false" :loading="{ indicator, spinning: listLoading }">
       <template #headerCell="{ column }">
         <template v-if="column.key === 'price'">
           Price<span style="color:#8c8c8c">/$</span>
@@ -39,20 +39,21 @@
         </template>
       </template>
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'date'">{{ realDate(record.date) }}</template>
+        <template v-if="column.key === 'date'">{{ realDate(record.timestamp) }}</template>
         <template v-else-if="column.key === 'type'">{{ typeMaps[record.type] }}</template>
         <template v-else-if="column.key === 'reward'">
-          {{ record.reward }} <span style="color:#8c8c8c">{{ typeMaps[record.type] }}</span>
+          {{ numFormat((record.blockReward / 1e18).toFixed(5)) }} <span style="color:#8c8c8c">{{ typeMaps[record.type] }}</span>
         </template>
-        <template v-else-if="column.key === 'price'">{{ numFormat(record.price) }}</template>
+        <template v-else-if="column.key === 'price'">{{ numFormat(record.price.toFixed(5)) }}</template>
+        <template v-else-if="column.key === 'value'">{{ numFormat((record.amount / 1e18).toFixed(5)) }}</template>
         <template v-else-if="column.key === 'status'">
-          <Tag bgColor="rgba(126, 211, 33, .2)" iconColor="#7ED321" v-if="record.status === 1">
+          <Tag bgColor="rgba(126, 211, 33, .2)" iconColor="#7ED321" v-if="record.status === 2">
             <template #icon>
               <img src="@/assets/imgs/verified-icon.png" alt="">
             </template>
             <span>Verified</span>
           </Tag>
-          <Tag bgColor="rgba(28, 80, 222, .2)" iconColor="#1C50DE" v-else>
+          <Tag bgColor="rgba(28, 80, 222, .2)" iconColor="#1C50DE" v-else-if="record.status === 3">
             <template #icon>
               <img src="@/assets/imgs/reviewed-icon.png" alt="">
             </template>
@@ -60,10 +61,21 @@
           </Tag>
         </template>
         <template v-else-if="column.key === 'operation'">
-          <a href="javascript:;" style="font-weight:500" v-if="record.status === 1" @click="openMintTAT">Mint TAT</a>
+          <a href="javascript:;" style="font-weight:500" v-if="record.status === 2" @click="openMintTAT">Mint TAT</a>
         </template>
       </template>
     </Table>
+
+    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+      <Pagination
+        show-size-changer
+        v-model:current="page"
+        v-model:page-size="pageSize"
+        :total="total"
+        :show-total="(total, range) => `Total of ${total} messages`"
+        @change="(page: number, pageSize: number) => getList('1', type, status, page, pageSize)"
+      />
+    </div>
   </main>
 
   <Modal v-model:open="openMint" title="Mint TAT" okText="Confirm" @ok="mintTAT" centered>
@@ -76,14 +88,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { h, ref, onMounted } from 'vue'
+import { getBlockList } from '@/api'
 import Tag from '@/components/TagComp.vue'
 import { realDate, numFormat } from '@/libs/utils'
-import { Table, Modal, Select, message } from 'ant-design-vue'
+import { LoadingOutlined } from '@ant-design/icons-vue'
+import { Table, Modal, Select, Pagination, message } from 'ant-design-vue'
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '40px',
+  },
+  spin: true,
+})
 
 const typeMaps: { [k: string]: string } = {
-  1: 'ETH',
-  2: 'BTC'
+  0: 'ETH',
+  1: 'BTC'
 }
 
 const columns = [
@@ -99,8 +120,8 @@ const columns = [
   },
   {
     title: 'Block height',
-    dataIndex: 'block',
-    key: 'block',
+    dataIndex: 'blockNum',
+    key: 'blockNum',
   },
   {
     title: 'Reward',
@@ -129,39 +150,6 @@ const columns = [
   }
 ]
 
-const data = [
-  {
-    key: '1',
-    date: 1706321291210,
-    type: 1,
-    block: 6789,
-    reward: 1.088,
-    price: 2308.76,
-    value: 10000,
-    status: 1
-  },
-  {
-    key: '2',
-    date: 1706321291210,
-    type: 2,
-    block: 6789,
-    reward: 1.088,
-    price: 2308.76,
-    value: 10000,
-    status: 2
-  },
-  {
-    key: '3',
-    date: 1706321291210,
-    type: 1,
-    block: 6789,
-    reward: 1.088,
-    price: 2308.76,
-    value: 10000,
-    status: 1
-  },
-]
-
 // open mint tat
 const openMint = ref<boolean>(false)
 const openMintTAT = () => {
@@ -185,8 +173,25 @@ const mintFailed = () => {
 
 // filter
 const date = ref('0')
-const type = ref('0')
-const status = ref('0')
+const type = ref('9')
+const status = ref('9')
+
+const page = ref(1)
+const total = ref(0)
+const pageSize = ref(10)
+const listLoading = ref(false)
+const diaList = ref<any[]>([])
+const getList = async (queryType: string, type: string, status: string, page: number, pageSize: number) => {
+  listLoading.value = true
+  const list = await getBlockList({ queryType, type, status, page, pageSize })
+  diaList.value = list.result.list
+  total.value = list.result.total
+  listLoading.value = false
+}
+
+onMounted(async () => {
+  await getList('1', '9', '9', page.value, pageSize.value)
+})
 </script>
 
 <style lang="less" scoped>
