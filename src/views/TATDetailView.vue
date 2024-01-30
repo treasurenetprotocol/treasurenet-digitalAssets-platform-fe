@@ -7,17 +7,17 @@
       <span>Cumulative Minted TAT</span>
     </h4>
 
-    <h3>337,240.00325678</h3>
+    <h3>{{ numFormat((calcData.calc / 1e18).toFixed(5)) }}</h3>
 
     <div class="mint-num">
       <span>
         Minted by BTC:
-        <b>2,356.48947528</b>
+        <b>{{ numFormat((calcData.btc / 1e18).toFixed(5)) }}</b>
         <span>TAT</span>
       </span>
       <span>
         Minted by ETH:
-        <b>2,356.48947528</b>
+        <b>{{ numFormat((calcData.eth / 1e18).toFixed(5)) }}</b>
         <span>TAT</span>
       </span>
     </div>
@@ -28,16 +28,13 @@
       <h2>TAT Details</h2>
       <div class="choose">
         <div class="item">
-          <span>Date:</span>
-          <Select style="width: 105px" v-model:value="date">
-            <Select.Option value="0">All</Select.Option>
-            <Select.Option value="1">2023/3/30</Select.Option>
-          </Select>
+          <span style="margin-right: 5px;">Date:</span>
+          <RangePicker v-model:value="date" @change="dateChange" format="YYYY/MM/DD" />
         </div>
       </div>
     </div>
 
-    <Table :columns="columns" :data-source="data">
+    <Table :columns="columns" :data-source="diaList" :pagination="false" :loading="{ indicator, spinning: listLoading }">
       <template #headerCell="{ column }">
         <template v-if="column.key === 'price'">
           Price<span style="color:#8c8c8c">/$</span>
@@ -48,21 +45,43 @@
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'date'">{{ realDate(record.date) }}</template>
-        <template v-else-if="column.key === 'event'">Minted by {{ eventMaps[record.event] }}</template>
-        <template v-else-if="column.key === 'amount'">{{ numFormat(record.amount) }}</template>
+        <template v-else-if="column.key === 'event'">Minted by {{ eventMaps[record.type] }}</template>
+        <template v-else-if="column.key === 'amount'">{{ numFormat((record.amount / 1e18).toFixed(5)) }}</template>
       </template>
     </Table>
+
+    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+      <Pagination
+        show-size-changer
+        v-model:current="page"
+        v-model:page-size="pageSize"
+        :total="total"
+        :show-total="(total, range) => `Total of ${total} messages`"
+        @change="(page: number, pageSize: number) => getList('1', page, pageSize)"
+      />
+    </div>
   </main>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import type { Dayjs } from 'dayjs'
+import { h, ref, onMounted } from 'vue'
+import { getBlockList } from '@/api'
 import { realDate, numFormat } from '@/libs/utils'
-import { Table, Select } from 'ant-design-vue'
+import { Table, Pagination, RangePicker } from 'ant-design-vue'
+import { LoadingOutlined } from '@ant-design/icons-vue'
+type RangeValue = [Dayjs, Dayjs]
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '40px',
+  },
+  spin: true,
+})
 
 const eventMaps: { [k: string]: string } = {
-  1: 'ETH',
-  2: 'BTC'
+  0: 'ETH',
+  1: 'BTC'
 }
 
 const columns = [
@@ -83,29 +102,35 @@ const columns = [
   }
 ]
 
-const data = [
-  {
-    key: '1',
-    date: 1706321291210,
-    event: 1,
-    amount: 6789
-  },
-  {
-    key: '2',
-    date: 1706321291210,
-    event: 2,
-    amount: 6789
-  },
-  {
-    key: '3',
-    date: 1706321291210,
-    event: 1,
-    amount: 6789
-  },
-]
-
 // filter
-const date = ref('0')
+const date = ref<RangeValue>()
+const dateChange = async (d: any, dstr: [string, string]) => {
+  await getList('2', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]))
+}
+
+const page = ref(1)
+const total = ref(0)
+const pageSize = ref(10)
+const listLoading = ref(false)
+const diaList = ref<any[]>([])
+const calcData = ref<any>({ btc: 0, eth: 0, calc: 0 })
+const getList = async (queryType: string, page: number, pageSize: number, dateFrom?: number, dateTo?: number) => {
+  listLoading.value = true
+  const ps: any = { queryType, page, pageSize }
+  dateFrom && (ps.dateFrom = dateFrom)
+  dateTo && (ps.dateTo = dateTo)
+  const list = await getBlockList(ps)
+  diaList.value = list.result.list
+  total.value = list.result.total
+  calcData.value.btc = list.result.minted.btcMintedAmount
+  calcData.value.eth = list.result.minted.ethMintedAmount
+  calcData.value.calc = list.result.minted.btcMintedAmount + list.result.minted.ethMintedAmount
+  listLoading.value = false
+}
+
+onMounted(async () => {
+  await getList('2', page.value, pageSize.value)
+})
 </script>
 
 <style lang="less" scoped>
