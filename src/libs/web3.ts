@@ -14,10 +14,12 @@ export async function CONNECT_WALLET() {
       if (acc.length > 0) {
         web3 = new Web3(web3Provider)
         web3Provider.on("accountsChanged", () => {
+          localStorage.removeItem("tn_jwt")
           window.location.reload()
         })
 
         web3Provider.on("chainChanged", async () => {
+          console.log(2);
           window.location.reload()
         })
 
