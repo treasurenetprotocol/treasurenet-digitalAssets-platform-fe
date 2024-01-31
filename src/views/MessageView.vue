@@ -2,10 +2,13 @@
   <main class="card message">
     <div class="header-title">
       <h2>System messages</h2>
-      <!-- <a href="javascript:;" class="n-btn">
-        <img src="@/assets/imgs/userbind-icon.png" alt="">
-        <span>Bind account</span>
-      </a> -->
+      <div class="opa">
+        <Checkbox v-model:checked="isHide" @change="hideRead">Hide read</Checkbox>
+        <span @click="readAll">
+          <MailOutlined />
+          Mark all as read
+        </span>
+      </div>
     </div>
 
     <Collapse v-model:activeKey="activeKey" :bordered="false" style="background: rgb(255, 255, 255)" accordion>
@@ -43,10 +46,10 @@
 
 <script lang="ts" setup>
 import { h, ref, onMounted } from 'vue'
-import { getMessageList } from '@/api'
 import { formatDate } from '@/libs/utils'
-import { Collapse, Pagination, Spin } from 'ant-design-vue'
-import { CaretRightOutlined, LoadingOutlined } from '@ant-design/icons-vue'
+import { getMessageList, setMessageStatus } from '@/api'
+import { Collapse, Pagination, Spin, Checkbox, message } from 'ant-design-vue'
+import { CaretRightOutlined, LoadingOutlined, MailOutlined } from '@ant-design/icons-vue'
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -61,12 +64,28 @@ const total = ref(0)
 const pageSize = ref(10)
 const listLoading = ref(false)
 const msgList = ref<any[]>([])
-const getList = async (page: number, pageSize: number) => {
+const getList = async (page: number, pageSize: number, status?: string) => {
   listLoading.value = true
-  const list = await getMessageList(page, pageSize)
+  const list = await getMessageList(page, pageSize, status)
   total.value = list.result.total
   msgList.value = list.result.list
   listLoading.value = false
+}
+
+const readAll = async () => {
+  const ids = msgList.value.map((l) => l.msgID)
+  const rqs: Promise<any>[] = []
+  ids.forEach((id) => {
+    rqs.push(setMessageStatus(id, '0'))
+  })
+  await Promise.all(rqs)
+  message.success('message set successfully')
+}
+
+const isHide = ref(false)
+const hideRead = async () => {
+  console.log(isHide.value)
+  await getList(page.value, pageSize.value, isHide.value ? '1' : '0')
 }
 
 onMounted(async () => {
@@ -77,6 +96,22 @@ onMounted(async () => {
 <style lang="less" scoped>
 .message {
   position: relative;
+}
+
+.opa {
+  >span {
+    color: #225BFC;
+    cursor: pointer;
+    margin-left: 40px;
+    font-weight: 500;
+    font-size: 16px;
+  }
+
+  >label {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(0,0,0,0.65);
+  }
 }
 
 .loading-box {

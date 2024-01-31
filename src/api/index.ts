@@ -30,8 +30,8 @@ export async function changeAccount(uniqueId: string): Promise<any> {
   return await Promise.resolve(res);
 }
 
-export async function getMessageList(page: number = 1, pageSize: number = 20): Promise<any> {
-  const res = await http.get("/api/messages/list", { page, pageSize });
+export async function getMessageList(page: number = 1, pageSize: number = 20, status?: string): Promise<any> {
+  const res = await http.get("/api/messages/list", { page, pageSize, status });
   return await Promise.resolve(res)
 }
 
@@ -42,5 +42,10 @@ export async function getBlockList(params: { queryType: string, page: number, pa
 
 export async function getContract(name: string): Promise<any> {
   const res = await http.get("/api/contracts/abi", { name });
+  return await Promise.resolve(res);
+}
+
+export async function setMessageStatus(msgID: string, status: string): Promise<any> {
+  const res = await http.post("/api/messages/setStatus", { msgID, status });
   return await Promise.resolve(res);
 }
