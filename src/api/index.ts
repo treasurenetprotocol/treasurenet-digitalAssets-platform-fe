@@ -39,3 +39,8 @@ export async function getBlockList(params: { queryType: string, page: number, pa
   const res = await http.get("/api/block/list", params);
   return await Promise.resolve(res);
 }
+
+export async function getContract(name: string): Promise<any> {
+  const res = await http.get("/api/contracts/abi", { name });
+  return await Promise.resolve(res);
+}

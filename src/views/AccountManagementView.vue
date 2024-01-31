@@ -23,9 +23,9 @@
           {{ networkMaps[record.type] }}
         </template>
         <template v-else-if="column.key === 'status'">
-          <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 0 || record.status === 1">
+          <Tag bgColor="rgba(240, 66, 108, .15)" iconColor="#F0426C" v-if="record.status === 0 || record.status === 1">
             <template #icon>
-              <img src="@/assets/imgs/inpreview-icon.png" alt="">
+              <img src="@/assets/imgs/not-icon.png" alt="">
             </template>
             <span>Not transferred</span>
           </Tag>
@@ -39,7 +39,7 @@
             <template #icon>
               <img src="@/assets/imgs/reviewed-icon.png" alt="">
             </template>
-            <span>Bounded</span>
+            <span>Bound</span>
           </Tag>
           <Tag bgColor="rgba(116, 117, 119, .2)" iconColor="#747577" v-else-if="record.status === 6 || record.status === 7">
             <template #icon>
@@ -95,15 +95,15 @@
   <Modal v-model:open="openBindInfo" title="Bind account" :maskClosable="false" centered>
     <template #footer>
       <Button @click="openBindInfo = false; transferId = ''">Cancel</Button>
-      <Button type="primary" @click="toSubmitBindInfo" v-if="!transferId">To verify</Button>
-      <Button type="primary" @click="setStatus" :loading="statusLoading" v-else>To verify</Button>
+      <Button type="primary" @click="toSubmitBindInfo" :loading="verifyLoading" v-if="!transferId">To verify</Button>
+      <Button type="primary" @click="setStatus()" :loading="statusLoading" v-else>To verify</Button>
     </template>
 
     <div class="bind-item info-box">
       <div class="item">
         <img src="@/assets/imgs/tn-icon.png" alt="">
         <h4>TN Account</h4>
-        <span>0xF5ecac…E9D5</span>
+        <span>{{ addressCut(tnAccount) }}</span>
       </div>
       <img src="@/assets/imgs/switch-icon.png" alt="" class="switch-icon">
       <div class="item">
@@ -140,14 +140,18 @@
 </template>
 
 <script lang="ts" setup>
+import Web3 from 'web3'
 import { h, ref, onMounted } from 'vue'
 import copy from 'copy-to-clipboard'
 import Tag from '@/components/TagComp.vue'
 import { addressCut } from '@/libs/utils'
 import { accountTypeMaps, networkMaps } from '@/enums'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { getAccountList, addAccount, changeAccount } from '@/api'
+import { getAccountList, getContract, addAccount, changeAccount } from '@/api'
 import { Table, Tooltip, Modal, Input, Button, Pagination, message } from 'ant-design-vue'
+
+const web3: Web3 = new Web3((window as any).ethereum)
+const tnAccount = (await web3.eth.getAccounts())[0]
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -214,9 +218,9 @@ const transferOpen = async (record: any) => {
 
 // set status
 const statusLoading = ref(false)
-const setStatus = async () => {
+const setStatus = async (id?: string) => {
   statusLoading.value = true
-  const res = await changeAccount(transferId.value)
+  const res = await changeAccount(id || transferId.value)
   if(res.code === '0') {
     transferId.value = ''
     openBindInfo.value = false
@@ -228,6 +232,7 @@ const setStatus = async () => {
 }
 
 // submit bind info
+const verifyLoading = ref(false)
 const toSubmitBindInfo = async () => {
   const address = account.value
   // address verify
@@ -266,30 +271,53 @@ const toSubmitBindInfo = async () => {
   }
 
   transferId.value = ''
+  verifyLoading.value = true
 
-  // reconfirm
-  Modal.confirm({
-    closable: true,
-    centered: true,
-    title: 'Confirm',
-    okText: 'Yes',
-    cancelText: 'Not yet',
-    content: 'You have transferred the token to the designated account.',
-    onOk() {
-      openBindInfo.value = false
-      message.success('Submitted successfully, pending verification !')
-    },
-    async onCancel() {
-      const addRes = await addAccount({ type: bindType.value === 'eth' ? '0' : '1', account: address })
-      if(addRes.code === '0') {
-        message.warning('Please operate in time, otherwise the binding will not be successful.')
-        await getList(page.value, pageSize.value)
-        openBindInfo.value = false
-      }else {
-        message.error(addRes.error)
+  // save account
+  const addRes = await addAccount({ type: bindType.value === 'eth' ? '0' : '1', account: address })
+  if(addRes.code === '0') {
+    // contract addProducer
+    // get contract
+    const contractRes = await getContract(bindType.value === 'eth' ? 'EthProducer' : 'BtcProducer')
+    if(contractRes.code === '0') {
+      const { abi, address: cAddress } = contractRes.result
+      const contract = new web3.eth.Contract(abi, cAddress)
+
+      try {
+        const { uniqueId } = addRes.result
+        console.log(uniqueId, ['ethtest2', tnAccount, 0, 0, address])
+        await contract.methods.addProducer(uniqueId, ['ethtest2', tnAccount, 0, 0, address]).call()
+
+        // reconfirm
+        Modal.confirm({
+          closable: true,
+          centered: true,
+          title: 'Confirm',
+          okText: 'Yes',
+          cancelText: 'Not yet',
+          content: 'You have transferred the token to the designated account.',
+          async onOk() {
+            await setStatus(uniqueId)
+            // message.success('Submitted successfully, pending verification !')
+            await getList(page.value, pageSize.value)
+            openBindInfo.value = false
+          },
+          async onCancel() {
+            message.success('Please operate in time, otherwise the binding will not be successful.')
+            await getList(page.value, pageSize.value)
+            openBindInfo.value = false
+          }
+        })
+      }catch(err: any) {
+        message.error(err.message)
       }
+    }else {
+      message.error(contractRes.error)
     }
-  })
+  }else {
+    message.error(addRes.error)
+  }
+  verifyLoading.value = false
 }
 
 const copyAddress = (addr: string) => {
