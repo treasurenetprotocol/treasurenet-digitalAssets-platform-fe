@@ -23,7 +23,13 @@
           {{ networkMaps[record.type] }}
         </template>
         <template v-else-if="column.key === 'status'">
-          <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 0 || record.status === 1 || record.status === 2 || record.status === 3 || record.status === 4">
+          <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 0 || record.status === 1">
+            <template #icon>
+              <img src="@/assets/imgs/inpreview-icon.png" alt="">
+            </template>
+            <span>Not transferred</span>
+          </Tag>
+          <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 2 || record.status === 3 || record.status === 4">
             <template #icon>
               <img src="@/assets/imgs/inpreview-icon.png" alt="">
             </template>
@@ -33,14 +39,17 @@
             <template #icon>
               <img src="@/assets/imgs/reviewed-icon.png" alt="">
             </template>
-            <span>Reviewed</span>
+            <span>Bounded</span>
           </Tag>
-          <Tag bgColor="rgba(116, 117, 119, .2)" iconColor="#747577" v-else>
+          <Tag bgColor="rgba(116, 117, 119, .2)" iconColor="#747577" v-else-if="record.status === 6 || record.status === 7">
             <template #icon>
               <img src="@/assets/imgs/failed-icon.png" alt="">
             </template>
             <span>Failed</span>
           </Tag>
+        </template>
+        <template v-else-if="column.key === 'operation'">
+          <a href="javascript:;" style="font-weight:500" v-if="record.status === 0 || record.status === 1" @click="transferOpen(record)">Transfer</a>
         </template>
       </template>
     </Table>
@@ -83,10 +92,11 @@
     </div>
   </Modal>
 
-  <Modal v-model:open="openBindInfo" title="Bind account" centered>
+  <Modal v-model:open="openBindInfo" title="Bind account" :maskClosable="false" centered>
     <template #footer>
-      <Button @click="openBindInfo = false">Cancel</Button>
-      <Button type="primary" :loading="verifyLoading" @click="toSubmitBindInfo">To verify</Button>
+      <Button @click="openBindInfo = false; transferId = ''">Cancel</Button>
+      <Button type="primary" @click="toSubmitBindInfo" v-if="!transferId">To verify</Button>
+      <Button type="primary" @click="setStatus" :loading="statusLoading" v-else>To verify</Button>
     </template>
 
     <div class="bind-item info-box">
@@ -112,7 +122,7 @@
         <span>*</span>
         Add Account
       </p>
-      <Input v-model:value="account" placeholder="Please enter your account" />
+      <Input v-model:value="account" :disabled="!!transferId" placeholder="Please enter your account" />
     </div>
     <div class="transfer">
       <div class="rule">
@@ -134,9 +144,9 @@ import { h, ref, onMounted } from 'vue'
 import copy from 'copy-to-clipboard'
 import Tag from '@/components/TagComp.vue'
 import { addressCut } from '@/libs/utils'
-import { getAccountList, addAccount } from '@/api'
 import { accountTypeMaps, networkMaps } from '@/enums'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { getAccountList, addAccount, changeAccount } from '@/api'
 import { Table, Tooltip, Modal, Input, Button, Pagination, message } from 'ant-design-vue'
 
 const indicator = h(LoadingOutlined, {
@@ -169,6 +179,11 @@ const columns = [
     title: 'Status',
     key: 'status',
     dataIndex: 'status',
+  },
+  {
+    title: 'Operation',
+    key: 'operation',
+    dataIndex: 'operation',
   }
 ]
 
@@ -189,8 +204,30 @@ const openBindInfoBox = (type: string) => {
   openBindInfo.value = !openBindInfo.value
 }
 
+// transfer open
+const transferId = ref('')
+const transferOpen = async (record: any) => {
+  openBindInfo.value = true
+  account.value = record.account
+  transferId.value = record.uniqueId
+}
+
+// set status
+const statusLoading = ref(false)
+const setStatus = async () => {
+  statusLoading.value = true
+  const res = await changeAccount(transferId.value)
+  if(res.code === '0') {
+    transferId.value = ''
+    openBindInfo.value = false
+    message.success('Submitted successfully, pending verification !')
+  }else {
+    message.error(res.error)
+  }
+  statusLoading.value = false
+}
+
 // submit bind info
-const verifyLoading = ref(false)
 const toSubmitBindInfo = async () => {
   const address = account.value
   // address verify
@@ -228,16 +265,31 @@ const toSubmitBindInfo = async () => {
     }
   }
 
-  verifyLoading.value = true
-  const addRes = await addAccount({ type: bindType.value === 'eth' ? '0' : '1', account: address })
-  verifyLoading.value = false
-  if(addRes.code === '0') {
-    openBindInfo.value = false
-    message.success('Submitted successfully, pending verification !')
-    await getList(page.value, pageSize.value)
-  }else {
-    message.error(addRes.error)
-  }
+  transferId.value = ''
+
+  // reconfirm
+  Modal.confirm({
+    closable: true,
+    centered: true,
+    title: 'Confirm',
+    okText: 'Yes',
+    cancelText: 'Not yet',
+    content: 'You have transferred the token to the designated account.',
+    onOk() {
+      openBindInfo.value = false
+      message.success('Submitted successfully, pending verification !')
+    },
+    async onCancel() {
+      const addRes = await addAccount({ type: bindType.value === 'eth' ? '0' : '1', account: address })
+      if(addRes.code === '0') {
+        message.warning('Please operate in time, otherwise the binding will not be successful.')
+        await getList(page.value, pageSize.value)
+        openBindInfo.value = false
+      }else {
+        message.error(addRes.error)
+      }
+    }
+  })
 }
 
 const copyAddress = (addr: string) => {

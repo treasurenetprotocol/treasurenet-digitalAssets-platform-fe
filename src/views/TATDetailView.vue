@@ -105,7 +105,7 @@ const columns = [
 // filter
 const date = ref<RangeValue>()
 const dateChange = async (d: any, dstr: [string, string]) => {
-  await getList('2', page.value, pageSize.value, +new Date(dstr[0]) + 43199000, +new Date(dstr[1]) + 43199000)
+  await getList('2', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 43199000)
 }
 
 const page = ref(1)

@@ -15,7 +15,7 @@
 
       <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title">
         <div class="content">
-          <p class="title">From: Liu Shanghai</p>
+          <p class="title">From: Treasurenet</p>
           <pre>{{ m.content }}</pre>
         </div>
         <template #extra>

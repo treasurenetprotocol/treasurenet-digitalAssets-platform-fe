@@ -25,6 +25,11 @@ export async function addAccount(params: { type: string, account: string }): Pro
   return await Promise.resolve(res)
 }
 
+export async function changeAccount(uniqueId: string): Promise<any> {
+  const res = await http.post("/api/account/setStatus", { uniqueId });
+  return await Promise.resolve(res);
+}
+
 export async function getMessageList(page: number = 1, pageSize: number = 20): Promise<any> {
   const res = await http.get("/api/messages/list", { page, pageSize });
   return await Promise.resolve(res)
