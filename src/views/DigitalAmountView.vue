@@ -58,7 +58,7 @@
           </Tag>
         </template>
         <template v-else-if="column.key === 'operation'">
-          <a href="javascript:;" style="font-weight:500" v-if="record.status === 2" @click="openMintTAT">Mint TAT</a>
+          <a href="javascript:;" style="font-weight:500" v-if="record.status === 2" @click="openMintTAT(record)">Mint TAT</a>
         </template>
       </template>
     </Table>
@@ -75,10 +75,14 @@
     </div>
   </main>
 
-  <Modal v-model:open="openMint" title="Mint TAT" okText="Confirm" @ok="mintTAT" centered>
+  <Modal v-model:open="openMint" title="Mint TAT" centered>
+    <template #footer>
+      <Button @click="openMint = false">Cancel</Button>
+      <Button type="primary" @click="mintTAT" :loading="mintLoading">Confirm</Button>
+    </template>
     <p class="mint-text">
       You can mint:
-      <b>{{ numFormat(365959.45) }}</b>
+      <b>{{ numFormat(mintNum) }}</b>
       <span>TAT</span>
     </p>
   </Modal>
@@ -86,13 +90,17 @@
 
 <script lang="ts" setup>
 import type { Dayjs } from 'dayjs'
+import Web3 from 'web3'
 import { h, ref, onMounted } from 'vue'
-import { getBlockList } from '@/api'
 import Tag from '@/components/TagComp.vue'
+import { getBlockList, getContract } from '@/api'
 import { realDate, numFormat } from '@/libs/utils'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { Table, Modal, Select, RangePicker, Pagination, message } from 'ant-design-vue'
+import { Table, Modal, Select, Button, RangePicker, Pagination, message } from 'ant-design-vue'
 type RangeValue = [Dayjs, Dayjs]
+
+const web3: Web3 = new Web3((window as any).ethereum)
+const tnAccount = (await web3.eth.getAccounts())[0]
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -150,24 +158,40 @@ const columns = [
 ]
 
 // open mint tat
+const record = ref<any>({})
+const mintNum = ref<number | string>(0)
 const openMint = ref<boolean>(false)
-const openMintTAT = () => {
+const openMintTAT = (r: any) => {
   openMint.value = !openMint.value
+  record.value = r
+  mintNum.value = numFormat((r.amount / 1e18).toFixed(5))
 }
 
 // mint 
-const mintTAT = () => {
-  // mintSuccess()
-  mintFailed()
-}
+const mintLoading = ref(false)
+let timer: any = null
+const mintTAT = async () => {
+  mintLoading.value = true
 
-// mint success
-const mintSuccess = () => {
-  message.success('You have successfully mint TAT !');
-}
-// mint error
-const mintFailed = () => {
-  message.error('Failed minting TAT !');
+  const contractRes = await getContract(record.value.type == '0' ? 'EthData' : 'BtcData')
+  const { abi, address } = contractRes.result
+  const contract = new web3.eth.Contract(abi, address)
+
+  try {
+    console.log(record.value.uniqueId, record.value.blockNum)
+    await contract.methods.clearing(record.value.uniqueId, record.value.blockNum).send({ from: tnAccount })
+    message.success('You have successfully mint TAT !')
+    clearTimeout(timer)
+    timer = window.setTimeout(async () => {
+      await getList('1', type.value, status.value, page.value, pageSize.value)
+    }, 10000)
+  }catch(err: any) {
+    message.error(err.message)
+    message.error('Failed minting TAT !')
+  }
+
+  openMint.value = false
+  mintLoading.value = false
 }
 
 // filter

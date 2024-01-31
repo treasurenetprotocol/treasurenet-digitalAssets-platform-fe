@@ -57,7 +57,7 @@
         v-model:page-size="pageSize"
         :total="total"
         :show-total="(total, range) => `Total of ${total} messages`"
-        @change="(page: number, pageSize: number) => getList('1', page, pageSize)"
+        @change="(page: number, pageSize: number) => getList('2', page, pageSize)"
       />
     </div>
   </main>

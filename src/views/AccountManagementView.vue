@@ -160,8 +160,8 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
-const ethVerifyAddr = '0xc508bfC41806b79cFdf8943Fb7F35885541FA808'
-const btcVerifyAddr = 'bc1p3nd562xtem0vrzu7qltljv0qmstqsx2r2yzektl834jvvtg5cvfq89g4wp'
+const ethVerifyAddr = import.meta.env.VITE_ETH_RECIVER
+const btcVerifyAddr = import.meta.env.VITE_BTC_RECIVER
 
 const columns = [
   {
