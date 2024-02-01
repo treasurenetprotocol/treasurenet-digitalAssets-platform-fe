@@ -26,12 +26,15 @@
           {{ networkMaps[record.type] }}
         </template>
         <template v-else-if="column.key === 'status'">
-          <Tag bgColor="rgba(240, 66, 108, .15)" iconColor="#F0426C" v-if="record.status === 0 || record.status === 1">
-            <template #icon>
-              <img src="@/assets/imgs/not-icon.png" alt="">
-            </template>
-            <span>Not transferred</span>
-          </Tag>
+          <template v-if="record.status === 0 || record.status === 1">
+            <Tag bgColor="rgba(240, 66, 108, .15)" iconColor="#F0426C">
+              <template #icon>
+                <img src="@/assets/imgs/not-icon.png" alt="">
+              </template>
+              <span>Not transferred</span>
+            </Tag>
+            <img src="@/assets/imgs/trans-icon.png" alt="" style="width:16px;margin-left: 12px;cursor: pointer;" @click="transferOpen(record)">
+          </template>
           <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 2 || record.status === 3 || record.status === 4">
             <template #icon>
               <img src="@/assets/imgs/inpreview-icon.png" alt="">
@@ -51,9 +54,9 @@
             <span>Failed</span>
           </Tag>
         </template>
-        <template v-else-if="column.key === 'operation'">
+        <!-- <template v-else-if="column.key === 'operation'">
           <a href="javascript:;" style="font-weight:500" v-if="record.status === 0 || record.status === 1" @click="transferOpen(record)">Transfer</a>
-        </template>
+        </template> -->
       </template>
     </Table>
 
@@ -95,7 +98,7 @@
     </div>
   </Modal>
 
-  <Modal v-model:open="openBindInfo" title="Bind account" :maskClosable="false" centered>
+  <Modal v-model:open="openBindInfo" title="Bind account" :maskClosable="false" @cancel="openBindInfo = false; transferId = ''" centered>
     <template #footer>
       <Button @click="openBindInfo = false; transferId = ''">Cancel</Button>
       <Button type="primary" @click="toSubmitBindInfo" :loading="verifyLoading" v-if="!transferId">To verify</Button>
@@ -191,11 +194,6 @@ const columns = [
     title: 'Status',
     key: 'status',
     dataIndex: 'status',
-  },
-  {
-    title: 'Operation',
-    key: 'operation',
-    dataIndex: 'operation',
   }
 ]
 
