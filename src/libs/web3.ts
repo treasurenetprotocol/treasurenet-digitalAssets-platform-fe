@@ -19,9 +19,27 @@ export async function CONNECT_WALLET() {
         })
 
         web3Provider.on("chainChanged", async () => {
-          console.log(2);
           window.location.reload()
         })
+
+        // check network
+        const { MODE: mode } = import.meta.env
+        const network = await web3.eth.net.getId()
+        if(mode === 'localhost') {
+          if(Number(network) !== 8000) {
+            await switchNetwork('0x1F40', 'tn local')
+          }
+        }
+        if(mode === 'testnet') {
+          if (Number(network) !== 8000) {
+            await switchNetwork("0x138D", "tn testnet");
+          }
+        }
+        if(mode === 'mainnet') {
+          if (Number(network) !== 8000) {
+            await switchNetwork("0x138A", "tn mainnet");
+          }
+        }
 
         return { web3Provider, web3 }
       }
@@ -32,5 +50,31 @@ export async function CONNECT_WALLET() {
     }
   } else {
     window.open("https://metamask.io/download/")
+  }
+}
+
+async function switchNetwork(chain: string, name: string) {
+  try {
+    await(window as any).ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: chain }],
+    });
+  } catch (switchError: any) {
+    if (switchError.code === 4902) {
+      try {
+        await(window as any).ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: chain,
+              chainName: name,
+              rpcUrls: [],
+            },
+          ],
+        });
+      } catch (addError) {
+        // handle "add" error
+      }
+    }
   }
 }
