@@ -316,7 +316,7 @@ const toSubmitBindInfo = async () => {
             openBindInfo.value = false
           },
           async onCancel() {
-            message.success('Please operate in time, otherwise the binding will not be successful.')
+            message.warning('Please operate in time, otherwise the binding will not be successful.')
             await getList(page.value, pageSize.value)
             openBindInfo.value = false
           }
