@@ -297,8 +297,9 @@ const toSubmitBindInfo = async () => {
 
       try {
         const { uniqueId } = addRes.result
-        console.log(uniqueId, ['ethtest2', tnAccount, 0, 0, address])
-        await contract.methods.addProducer(uniqueId, ['ethtest2', tnAccount, 0, 0, address]).send({ from: tnAccount })
+        const nickname =  Math.random().toString(36).slice(-6)
+        console.log(uniqueId, [nickname, tnAccount, 0, 0, address])
+        await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
 
         // reconfirm
         Modal.confirm({
