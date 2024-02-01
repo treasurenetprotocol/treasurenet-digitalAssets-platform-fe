@@ -261,7 +261,7 @@ const toSubmitBindInfo = async () => {
         message.error('Please enter the correct BTC address')
         return
       }
-    }else if (address.startsWith('bc1q')) {
+    }else if (address.startsWith('bc1q') || address.startsWith('tb')) {
       if(address.length !== 42) {
         message.error('Please enter the correct BTC address')
         return
