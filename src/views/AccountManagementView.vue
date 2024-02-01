@@ -9,6 +9,9 @@
     </div>
 
     <Table :columns="columns" :data-source="accList" :pagination="false" :loading="{ indicator, spinning: listLoading }">
+      <template v-slot:emptyText>
+        <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="You haven't bound your account yet, click the button to bind it." />
+      </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'account'">
           <Tooltip>
@@ -54,7 +57,7 @@
       </template>
     </Table>
 
-    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+    <div style="text-align: right;margin-top: 24px;">
       <Pagination
         show-size-changer
         v-model:current="page"
@@ -81,7 +84,7 @@
 
       <div class="item">
         <img src="@/assets/imgs/btc-icon.png" alt="">
-        <h4>Ethereum system</h4>
+        <h4>Bitcoin system</h4>
         <span>Verification required</span>
         <div class="btn">
           <a href="javascript:;" class="n-btn" @click="openBindInfoBox('btc')">
@@ -122,7 +125,12 @@
         <span>*</span>
         Add Account
       </p>
-      <Input v-model:value="account" :disabled="!!transferId" placeholder="Please enter your account" />
+      <div style="display: flex;">
+        <Select style="width: 180px;border: 1px solid #d9d9d9;border-radius: 4px;margin-right: 5px;" :value="'none'" disabled>
+          <Select.Option value="none">{{ bindType === 'eth' ? 'Ethereum Account' : 'Bitcoin Account' }}</Select.Option>
+        </Select>
+        <Input v-model:value="account" :disabled="!!transferId" placeholder="Please enter your account" />
+      </div>
     </div>
     <div class="transfer">
       <div class="rule">
@@ -148,7 +156,7 @@ import { addressCut } from '@/libs/utils'
 import { accountTypeMaps, networkMaps } from '@/enums'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { getAccountList, getContract, addAccount, changeAccount } from '@/api'
-import { Table, Tooltip, Modal, Input, Button, Pagination, message } from 'ant-design-vue'
+import { Table, Tooltip, Modal, Input, Button, Select, Pagination, Empty, message } from 'ant-design-vue'
 
 const web3: Web3 = new Web3((window as any).ethereum)
 const tnAccount = (await web3.eth.getAccounts())[0]

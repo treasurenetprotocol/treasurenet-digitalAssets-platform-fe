@@ -63,7 +63,7 @@
       </template>
     </Table>
 
-    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+    <div style="text-align: right;margin-top: 24px;">
       <Pagination
         show-size-changer
         v-model:current="page"

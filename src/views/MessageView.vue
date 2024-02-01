@@ -27,7 +27,7 @@
       </Collapse.Panel>
     </Collapse>
 
-    <div style="text-align: right;" v-if="total > pageSize">
+    <div style="text-align: right;">
       <Pagination
         show-size-changer
         v-model:current="page"
