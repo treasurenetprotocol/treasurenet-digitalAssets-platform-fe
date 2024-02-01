@@ -261,13 +261,18 @@ const toSubmitBindInfo = async () => {
         message.error('Please enter the correct BTC address')
         return
       }
-    }else if (address.startsWith('bc1q') || address.startsWith('tb')) {
+    }else if (address.startsWith('bc1q')) {
       if(address.length !== 42) {
         message.error('Please enter the correct BTC address')
         return
       }
     } else if (address.startsWith('bc1p')) {
       if (address.length !== 62) {
+        message.error('Please enter the correct BTC address')
+        return
+      }
+    } else if (address.startsWith('tb')) {
+      if (address.length !== 62 && address.length !== 42) {
         message.error('Please enter the correct BTC address')
         return
       }
