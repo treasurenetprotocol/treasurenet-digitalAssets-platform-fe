@@ -229,12 +229,13 @@ const setStatus = async (id?: string) => {
   const res = await changeAccount(id || transferId.value)
   if(res.code === '0') {
     transferId.value = ''
-    openBindInfo.value = false
     message.success('Submitted successfully, pending verification !')
   }else {
     message.error(res.error)
   }
+  openBindInfo.value = false
   statusLoading.value = false
+  await getList(page.value, pageSize.value)
 }
 
 // submit bind info
@@ -292,7 +293,7 @@ const toSubmitBindInfo = async () => {
       try {
         const { uniqueId } = addRes.result
         console.log(uniqueId, ['ethtest2', tnAccount, 0, 0, address])
-        await contract.methods.addProducer(uniqueId, ['ethtest2', tnAccount, 0, 0, address]).call()
+        await contract.methods.addProducer(uniqueId, ['ethtest2', tnAccount, 0, 0, address]).send({ from: tnAccount })
 
         // reconfirm
         Modal.confirm({

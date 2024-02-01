@@ -31,12 +31,12 @@ export async function CONNECT_WALLET() {
           }
         }
         if(mode === 'testnet') {
-          if (Number(network) !== 8000) {
+          if (Number(network) !== 5005) {
             await switchNetwork("0x138D", "tn testnet");
           }
         }
         if(mode === 'mainnet') {
-          if (Number(network) !== 8000) {
+          if (Number(network) !== 5002) {
             await switchNetwork("0x138A", "tn mainnet");
           }
         }
