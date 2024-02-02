@@ -39,10 +39,10 @@
         <template v-if="column.key === 'date'">{{ realDate(record.timestamp) }}</template>
         <template v-else-if="column.key === 'type'">{{ typeMaps[record.type] }}</template>
         <template v-else-if="column.key === 'reward'">
-          {{ numFormat((record.blockReward / 1e18).toFixed(5)) }} <span style="color:#8c8c8c">{{ typeMaps[record.type] }}</span>
+          {{ numFormat((record.blockReward / 1e18).toFixed(4)) }} <span style="color:#8c8c8c">{{ typeMaps[record.type] }}</span>
         </template>
-        <template v-else-if="column.key === 'price'">{{ numFormat(record.price.toFixed(5)) }}</template>
-        <template v-else-if="column.key === 'value'">{{ numFormat((record.amount / 1e18).toFixed(5)) }}</template>
+        <template v-else-if="column.key === 'price'">{{ numFormat(record.price.toFixed(4)) }}</template>
+        <template v-else-if="column.key === 'value'">{{ numFormat((record.amount / 1e18).toFixed(4)) }}</template>
         <template v-else-if="column.key === 'status'">
           <Tag bgColor="rgba(126, 211, 33, .2)" iconColor="#7ED321" v-if="record.status === 2">
             <template #icon>
@@ -165,7 +165,7 @@ const openMint = ref<boolean>(false)
 const openMintTAT = (r: any) => {
   openMint.value = !openMint.value
   record.value = r
-  mintNum.value = numFormat((r.amount / 1e18).toFixed(5))
+  mintNum.value = numFormat((r.amount / 1e18).toFixed(4))
 }
 
 // mint 

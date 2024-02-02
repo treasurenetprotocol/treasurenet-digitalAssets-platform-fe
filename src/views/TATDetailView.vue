@@ -7,17 +7,17 @@
       <span>Cumulative Minted TAT</span>
     </h4>
 
-    <h3>{{ numFormat((calcData.calc / 1e18).toFixed(5)) }}</h3>
+    <h3>{{ numFormat((calcData.calc / 1e18).toFixed(4)) }}</h3>
 
     <div class="mint-num">
       <span>
         Minted by BTC:
-        <b>{{ numFormat((calcData.btc / 1e18).toFixed(5)) }}</b>
+        <b>{{ numFormat((calcData.btc / 1e18).toFixed(4)) }}</b>
         <span>TAT</span>
       </span>
       <span>
         Minted by ETH:
-        <b>{{ numFormat((calcData.eth / 1e18).toFixed(5)) }}</b>
+        <b>{{ numFormat((calcData.eth / 1e18).toFixed(4)) }}</b>
         <span>TAT</span>
       </span>
     </div>
@@ -46,7 +46,7 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'date'">{{ realDate(record.latest || record.timestamp) }}</template>
         <template v-else-if="column.key === 'event'">Minted by {{ eventMaps[record.type] }}</template>
-        <template v-else-if="column.key === 'amount'">{{ numFormat((record.amount / 1e18).toFixed(5)) }}</template>
+        <template v-else-if="column.key === 'amount'">{{ numFormat((record.amount / 1e18).toFixed(4)) }}</template>
       </template>
     </Table>
 

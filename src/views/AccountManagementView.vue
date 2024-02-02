@@ -252,7 +252,6 @@ const toSubmitBindInfo = async () => {
   const address = account.value
 
   transferId.value = ''
-  verifyLoading.value = true
 
   // address verify
   if(!address) {
@@ -293,6 +292,8 @@ const toSubmitBindInfo = async () => {
       return
     }
   }
+
+  verifyLoading.value = true
 
   // check network
   const { MODE: mode } = import.meta.env
