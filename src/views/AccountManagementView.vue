@@ -54,9 +54,6 @@
             <span>Failed</span>
           </Tag>
         </template>
-        <!-- <template v-else-if="column.key === 'operation'">
-          <a href="javascript:;" style="font-weight:500" v-if="record.status === 0 || record.status === 1" @click="transferOpen(record)">Transfer</a>
-        </template> -->
       </template>
     </Table>
 
@@ -148,6 +145,14 @@
       </div>
     </div>
   </Modal>
+
+  <div class="loading-box" v-show="timerLoading">
+    <Spin :indicator="indicator">
+      <template #tip>
+        <p style="color:#fff;font-size: 18px;padding: 5px 12px;border-radius: 20px;background-color:#666;">Please wait for 10 seconds before the contract takes effect</p>
+      </template>
+    </Spin>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -159,7 +164,7 @@ import { addressCut } from '@/libs/utils'
 import { accountTypeMaps, networkMaps } from '@/enums'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { getAccountList, getContract, addAccount, changeAccount } from '@/api'
-import { Table, Tooltip, Modal, Input, Button, Select, Pagination, Empty, message } from 'ant-design-vue'
+import { Table, Tooltip, Modal, Input, Button, Select, Pagination, Empty, Spin, message } from 'ant-design-vue'
 
 const web3: Web3 = new Web3((window as any).ethereum)
 const tnAccount = (await web3.eth.getAccounts())[0]
@@ -239,6 +244,7 @@ const setStatus = async (id?: string) => {
 }
 
 // submit bind info
+const timerLoading = ref(false)
 const verifyLoading = ref(false)
 const toSubmitBindInfo = async () => {
   const address = account.value
@@ -299,28 +305,32 @@ const toSubmitBindInfo = async () => {
         const { uniqueId } = addRes.result
         const nickname =  Math.random().toString(36).slice(-6)
         console.log(uniqueId, [nickname, tnAccount, 0, 0, address])
-        await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
+        const rRes = await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
+        console.log(rRes)
 
-        // reconfirm
-        Modal.confirm({
-          closable: true,
-          centered: true,
-          title: 'Confirm',
-          okText: 'Yes',
-          cancelText: 'Not yet',
-          content: 'You have transferred the token to the designated account.',
-          async onOk() {
-            await setStatus(uniqueId)
-            // message.success('Submitted successfully, pending verification !')
-            await getList(page.value, pageSize.value)
-            openBindInfo.value = false
-          },
-          async onCancel() {
-            message.warning('Please operate in time, otherwise the binding will not be successful.')
-            await getList(page.value, pageSize.value)
-            openBindInfo.value = false
-          }
-        })
+        timerLoading.value = true
+        window.setTimeout(() => {
+          timerLoading.value = false
+          // reconfirm
+          Modal.confirm({
+            closable: true,
+            centered: true,
+            title: 'Confirm',
+            okText: 'Yes',
+            cancelText: 'Not yet',
+            content: 'You have transferred the token to the designated account.',
+            async onOk() {
+              await setStatus(uniqueId)
+              await getList(page.value, pageSize.value)
+              openBindInfo.value = false
+            },
+            async onCancel() {
+              message.warning('Please operate in time, otherwise the binding will not be successful.')
+              await getList(page.value, pageSize.value)
+              openBindInfo.value = false
+            }
+          })
+        }, 10000)
       }catch(err: any) {
         message.error(err.message)
       }
@@ -479,5 +489,19 @@ onMounted(async () => {
       cursor: pointer;
     }
   }
+}
+
+.loading-box {
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  display: flex;
+  position: absolute;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, .8);
 }
 </style>
