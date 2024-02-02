@@ -17,7 +17,7 @@
         </div>
         <div class="item">
           <span>Status:</span>
-          <Select style="width: 120px" v-model:value="status" @change="getList('1', type, status, page, pageSize)">
+          <Select style="width: 120px" v-model:value="status" @change="getList('1', type, status, page, pageSize, +new Date(dateArr[0]), +new Date(dateArr[1]) + 86400000)">
             <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="3">Minted</Select.Option>
             <Select.Option value="2">Verified</Select.Option>
