@@ -47,7 +47,7 @@ onMounted(async () => {
   }
 
   // get messages total
-  const mRes = await getMessageList()
+  const mRes = await getMessageList(1, 1, '1')
   if(mRes.code === '0') unreadMessageTotal.value = mRes.result.total
 })
 </script>
