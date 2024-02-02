@@ -27,6 +27,8 @@
       </Collapse.Panel>
     </Collapse>
 
+    <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="No messages" v-if="!msgList.length" />
+
     <div style="text-align: right;">
       <Pagination
         show-size-changer
@@ -49,7 +51,7 @@ import { h, ref, onMounted } from 'vue'
 import EventBus from '@/libs/eventbus'
 import { formatDate } from '@/libs/utils'
 import { getMessageList, setMessageStatus } from '@/api'
-import { Collapse, Pagination, Spin, Checkbox, message } from 'ant-design-vue'
+import { Collapse, Pagination, Spin, Checkbox, Empty, message } from 'ant-design-vue'
 import { CaretRightOutlined, LoadingOutlined, MailOutlined } from '@ant-design/icons-vue'
 
 const indicator = h(LoadingOutlined, {
