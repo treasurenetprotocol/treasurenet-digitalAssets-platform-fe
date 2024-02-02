@@ -226,6 +226,7 @@ const transferOpen = async (record: any) => {
   openBindInfo.value = true
   account.value = record.account
   transferId.value = record.uniqueId
+  bindType.value = record.type == 0 ? 'eth' : 'btc'
 }
 
 // set status

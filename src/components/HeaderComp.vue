@@ -24,6 +24,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import EventBus from '@/libs/eventbus'
 import { addressCut } from '@/libs/utils'
 import { message } from 'ant-design-vue'
 import { getUserInfo, getMessageList } from '@/api'
@@ -49,6 +50,13 @@ onMounted(async () => {
   // get messages total
   const mRes = await getMessageList(1, 1, '1')
   if(mRes.code === '0') unreadMessageTotal.value = mRes.result.total
+
+  EventBus.on('onMessageRead', async v => {
+    if(v === 'yes') {
+      const mRes = await getMessageList(1, 1, '1')
+      if (mRes.code === '0') unreadMessageTotal.value = mRes.result.total
+    }
+  })
 })
 </script>
 
@@ -100,7 +108,7 @@ onMounted(async () => {
 
     .dot {
       top: -8px;
-      right: -20px;
+      right: -10px;
       color: #fff;
       padding: 4px 6px;
       font-size: 12px;

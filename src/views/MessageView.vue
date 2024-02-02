@@ -34,7 +34,7 @@
         v-model:page-size="pageSize"
         :total="total"
         :show-total="(total, range) => `Total of ${total} messages`"
-        @change="(page: number, pageSize: number) => getList(page, pageSize)"
+        @change="(page: number, pageSize: number) => hideRead()"
       />
     </div>
 
@@ -46,6 +46,7 @@
 
 <script lang="ts" setup>
 import { h, ref, onMounted } from 'vue'
+import EventBus from '@/libs/eventbus'
 import { formatDate } from '@/libs/utils'
 import { getMessageList, setMessageStatus } from '@/api'
 import { Collapse, Pagination, Spin, Checkbox, message } from 'ant-design-vue'
@@ -73,21 +74,20 @@ const getList = async (page: number, pageSize: number, status?: string) => {
 }
 
 const readAll = async () => {
-  const ids = msgList.value.map((l) => l.msgID)
-  const rqs: Promise<any>[] = []
-  ids.forEach((id) => {
-    rqs.push(setMessageStatus(id, '0'))
-  })
-  await Promise.all(rqs)
+  await setMessageStatus('0')
   message.success('message set successfully')
-  await getList(page.value, pageSize.value)
+  await hideRead()
+
+  EventBus.emit('onMessageRead', 'yes')
 }
 
 const change = async (k: any)=> {
   if(k.status === 1) {
     listLoading.value = true
-    await setMessageStatus(k.msgID, '0')
-    await getList(page.value, pageSize.value)
+    await setMessageStatus('0', k.msgID)
+    await hideRead()
+
+    EventBus.emit('onMessageRead', 'yes')
   }
 }
 
@@ -103,6 +103,9 @@ const hideRead = async () => {
 onMounted(async () => {
   await getList(page.value, pageSize.value)
 })
+
+
+
 </script>
 
 <style lang="less" scoped>
