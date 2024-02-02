@@ -252,7 +252,7 @@ const toSubmitBindInfo = async () => {
 
   transferId.value = ''
   verifyLoading.value = true
-  
+
   // address verify
   if(!address) {
     message.error('Please enter your account')
@@ -299,19 +299,16 @@ const toSubmitBindInfo = async () => {
   if (mode === 'localhost') {
     if (Number(network) !== 8000) {
       await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
-      return
     }
   }
   if (mode === 'testnet') {
     if (Number(network) !== 5005) {
       await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
-      return
     }
   }
   if (mode === 'mainnet') {
     if (Number(network) !== 5002) {
       await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
-      return
     }
   }
 
@@ -351,7 +348,6 @@ const toSubmitBindInfo = async () => {
             content: 'You have transferred the token to the designated account.',
             async onOk() {
               await setStatus(uniqueId)
-              await getList(page.value, pageSize.value)
               openBindInfo.value = false
             },
             async onCancel() {
