@@ -135,7 +135,7 @@
     <div class="transfer">
       <div class="rule">
         Transfer:
-        <b>0.00001</b>
+        <b>0.0001</b>
         <span>{{ bindType === 'eth' ? 'ETH' : 'BTC' }}</span>
       </div>
       <div class="ads">
