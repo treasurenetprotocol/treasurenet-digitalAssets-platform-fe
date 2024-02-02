@@ -80,6 +80,7 @@ const readAll = async () => {
   })
   await Promise.all(rqs)
   message.success('message set successfully')
+  await getList(page.value, pageSize.value)
 }
 
 const isHide = ref(false)
