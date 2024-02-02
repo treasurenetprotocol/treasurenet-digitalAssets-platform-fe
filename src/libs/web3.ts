@@ -6,10 +6,10 @@ export async function CONNECT_WALLET() {
 
   if ((window as any).ethereum) {
     web3Provider = (window as any).ethereum
-    // web3Provider.on("accountsChanged", () => {
-    //   localStorage.removeItem("tn_jwt");
-    //   window.location.reload();
-    // });
+    web3Provider.on("accountsChanged", () => {
+      localStorage.removeItem("tn_jwt");
+      window.location.reload();
+    });
 
     // web3Provider.on("chainChanged", async () => {
     //   console.log(1111);
