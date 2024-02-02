@@ -107,7 +107,7 @@ const date = ref<RangeValue>()
 const dateArr = ref<string[]>([])
 const dateChange = async (d: any, dstr: [string, string]) => {
   dateArr.value = dstr
-  await getList('2', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 43199000)
+  await getList('2', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 86400000)
 }
 
 const page = ref(1)
@@ -131,7 +131,7 @@ const getList = async (queryType: string, page: number, pageSize: number, dateFr
 }
 
 const paginChange = async () => {
-  await getList('2', page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 43199000)
+  await getList('2', page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 86400000)
 }
 
 onMounted(async () => {

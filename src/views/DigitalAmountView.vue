@@ -9,7 +9,7 @@
         </div>
         <div class="item">
           <span>Type:</span>
-          <Select style="width: 80px" v-model:value="type" @change="getList('1', type, status, page, pageSize, +new Date(dateArr[0]), +new Date(dateArr[1]) + 43199000)">
+          <Select style="width: 80px" v-model:value="type" @change="getList('1', type, status, page, pageSize, +new Date(dateArr[0]), +new Date(dateArr[1]) + 86400000)">
             <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="1">BTC</Select.Option>
             <Select.Option value="0">ETH</Select.Option>
@@ -224,7 +224,7 @@ const type = ref('9')
 const status = ref('9')
 const dateChange = async (d: any, dstr: [string, string]) => {
   dateArr.value = dstr
-  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 43199000)
+  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 86400000)
 }
 
 const page = ref(1)
@@ -244,7 +244,7 @@ const getList = async (queryType: string, type: string, status: string, page: nu
 }
 
 const paginChange = async () => {
-  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 43199000)
+  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 86400000)
 }
 
 onMounted(async () => {
