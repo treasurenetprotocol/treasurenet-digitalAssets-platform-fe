@@ -249,6 +249,10 @@ const timerLoading = ref(false)
 const verifyLoading = ref(false)
 const toSubmitBindInfo = async () => {
   const address = account.value
+
+  transferId.value = ''
+  verifyLoading.value = true
+  
   // address verify
   if(!address) {
     message.error('Please enter your account')
@@ -311,9 +315,6 @@ const toSubmitBindInfo = async () => {
     }
   }
 
-  transferId.value = ''
-  verifyLoading.value = true
-
   // save account
   const addRes = await addAccount({ type: bindType.value === 'eth' ? '0' : '1', account: address })
   if(addRes.code === '0') {
@@ -328,7 +329,14 @@ const toSubmitBindInfo = async () => {
         const { uniqueId } = addRes.result
         const nickname =  Math.random().toString(36).slice(-6)
         console.log(uniqueId, [nickname, tnAccount, 0, 0, address])
-        await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
+        const execContract = async () => {
+          try {
+            await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
+          } catch (err: any) {
+            await execContract()
+          }
+        }
+        await execContract()
 
         timerLoading.value = true
         window.setTimeout(() => {

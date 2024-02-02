@@ -6,10 +6,10 @@ export async function CONNECT_WALLET() {
 
   if ((window as any).ethereum) {
     web3Provider = (window as any).ethereum
-    web3Provider.on("accountsChanged", () => {
-      localStorage.removeItem("tn_jwt");
-      window.location.reload();
-    });
+    // web3Provider.on("accountsChanged", () => {
+    //   localStorage.removeItem("tn_jwt");
+    //   window.location.reload();
+    // });
 
     // web3Provider.on("chainChanged", async () => {
     //   console.log(1111);
@@ -25,7 +25,6 @@ export async function CONNECT_WALLET() {
         // check network
         const { MODE: mode } = import.meta.env
         const network = await web3.eth.net.getId()
-        let sRes
         if(mode === 'localhost') {
           if(Number(network) !== 8000) {
             const res = await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
@@ -56,6 +55,8 @@ export async function CONNECT_WALLET() {
             }
           }
         }
+
+        return { web3Provider, web3 };
       }
     } catch (error: any) {
       // authorize failed.

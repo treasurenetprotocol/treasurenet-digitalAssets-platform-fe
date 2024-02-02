@@ -64,6 +64,7 @@ const connect = async () => {
   }else {
     // login success
     const account = await res?.web3?.eth.getAccounts() || []
+    console.log(account)
     const hexRes = await getHexMsg(account[0])
     if(hexRes.code === '0') {
       try {
