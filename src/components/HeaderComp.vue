@@ -4,8 +4,9 @@
       <img src="@/assets/imgs/logo.png" alt="">
     </div>
     <div class="opera">
-      <a href="javascript:;" @click="router.push('/manage/message')">
+      <a href="javascript:;" @click="router.push('/manage/message')" style="position: relative;">
         <img src="@/assets/imgs/tips-none.png" alt="">
+        <strong class="dot" v-if="unreadMessageTotal > 0"></strong>
       </a>
       <span>|</span>
       <a href="javascript:;">
@@ -22,10 +23,10 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { getUserInfo } from '@/api'
 import { useRouter } from 'vue-router'
 import { addressCut } from '@/libs/utils'
 import { message } from 'ant-design-vue'
+import { getUserInfo, getMessageList } from '@/api'
 
 const router = useRouter()
 
@@ -35,6 +36,7 @@ const logout = () => {
 }
 
 const userInfo = ref<any>({})
+const unreadMessageTotal = ref(0)
 onMounted(async () => {
   const user = await getUserInfo()
   if(user.code === '-5') {
@@ -43,6 +45,10 @@ onMounted(async () => {
   }else {
     userInfo.value = user.result
   }
+
+  // get messages total
+  const mRes = await getMessageList()
+  if(mRes.code === '0') unreadMessageTotal.value = mRes.result.total
 })
 </script>
 
@@ -90,6 +96,16 @@ onMounted(async () => {
 
     span {
       padding: 0 15px;
+    }
+
+    .dot {
+      top: 2px;
+      right: 0;
+      width: 6px;
+      height: 6px;
+      position: absolute;
+      border-radius: 50%;
+      background-color: red;
     }
   }
 }

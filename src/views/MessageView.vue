@@ -16,7 +16,7 @@
         <CaretRightOutlined :rotate="panel?.isActive ? 90 : 0" />
       </template>
 
-      <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title">
+      <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title" :class="m.status === 0 ? 'read' : 'unread'">
         <div class="content">
           <p class="title">From: Treasurenet</p>
           <pre>{{ m.content }}</pre>
