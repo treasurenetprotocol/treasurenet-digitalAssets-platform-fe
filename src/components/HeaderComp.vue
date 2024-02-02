@@ -6,7 +6,7 @@
     <div class="opera">
       <a href="javascript:;" @click="router.push('/manage/message')" style="position: relative;">
         <img src="@/assets/imgs/tips-none.png" alt="">
-        <strong class="dot" v-if="unreadMessageTotal > 0"></strong>
+        <strong class="dot" v-if="unreadMessageTotal > 0">{{ unreadMessageTotal > 99 ? '99+' : unreadMessageTotal }}</strong>
       </a>
       <span>|</span>
       <a href="javascript:;">
@@ -99,13 +99,16 @@ onMounted(async () => {
     }
 
     .dot {
-      top: 2px;
-      right: 0;
-      width: 6px;
-      height: 6px;
+      top: -8px;
+      right: -20px;
+      color: #fff;
+      padding: 4px 6px;
+      font-size: 12px;
+      font-weight: normal;
       position: absolute;
-      border-radius: 50%;
+      border-radius: 10px;
       background-color: red;
+      transform: scale(.6);
     }
   }
 }

@@ -9,7 +9,7 @@
         </div>
         <div class="item">
           <span>Type:</span>
-          <Select style="width: 80px" v-model:value="type" @change="getList('1', type, status, page, pageSize)">
+          <Select style="width: 80px" v-model:value="type" @change="getList('1', type, status, page, pageSize, +new Date(dateArr[0]), +new Date(dateArr[1]) + 43199000)">
             <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="1">BTC</Select.Option>
             <Select.Option value="0">ETH</Select.Option>
@@ -70,7 +70,7 @@
         v-model:page-size="pageSize"
         :total="total"
         :show-total="(total, range) => `Total of ${total} messages`"
-        @change="(page: number, pageSize: number) => getList('1', type, status, page, pageSize)"
+        @change="(page: number, pageSize: number) => paginChange()"
       />
     </div>
   </main>
@@ -218,11 +218,13 @@ const mintTAT = async () => {
 }
 
 // filter
+const dateArr = ref<string[]>([])
 const date = ref<RangeValue>()
 const type = ref('9')
 const status = ref('9')
 const dateChange = async (d: any, dstr: [string, string]) => {
-  await getList('1', '9', '9', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 43199000)
+  dateArr.value = dstr
+  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 43199000)
 }
 
 const page = ref(1)
@@ -239,6 +241,10 @@ const getList = async (queryType: string, type: string, status: string, page: nu
   diaList.value = list.result.list
   total.value = list.result.total
   listLoading.value = false
+}
+
+const paginChange = async () => {
+  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 43199000)
 }
 
 onMounted(async () => {
