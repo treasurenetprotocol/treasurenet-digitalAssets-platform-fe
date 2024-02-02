@@ -93,6 +93,7 @@ import type { Dayjs } from 'dayjs'
 import Web3 from 'web3'
 import { h, ref, onMounted } from 'vue'
 import Tag from '@/components/TagComp.vue'
+import { switchNetwork } from '@/libs/web3'
 import { getBlockList, getContract } from '@/api'
 import { realDate, numFormat } from '@/libs/utils'
 import { LoadingOutlined } from '@ant-design/icons-vue'
@@ -171,6 +172,28 @@ const openMintTAT = (r: any) => {
 const mintLoading = ref(false)
 let timer: any = null
 const mintTAT = async () => {
+  // check network
+  const { MODE: mode } = import.meta.env
+  const network = await web3.eth.net.getId()
+  if (mode === 'localhost') {
+    if (Number(network) !== 8000) {
+      await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
+      return
+    }
+  }
+  if (mode === 'testnet') {
+    if (Number(network) !== 5005) {
+      await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
+      return
+    }
+  }
+  if (mode === 'mainnet') {
+    if (Number(network) !== 5002) {
+      await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
+      return
+    }
+  }
+
   mintLoading.value = true
 
   const contractRes = await getContract(record.value.type == '0' ? 'EthData' : 'BtcData')

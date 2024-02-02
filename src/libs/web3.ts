@@ -27,17 +27,17 @@ export async function CONNECT_WALLET() {
         const network = await web3.eth.net.getId()
         if(mode === 'localhost') {
           if(Number(network) !== 8000) {
-            await switchNetwork('0x1F40', 'tn local')
+            await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
           }
         }
         if(mode === 'testnet') {
           if (Number(network) !== 5005) {
-            await switchNetwork("0x138D", "tn testnet");
+            await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
           }
         }
         if(mode === 'mainnet') {
           if (Number(network) !== 5002) {
-            await switchNetwork("0x138A", "tn mainnet");
+            await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
           }
         }
 
@@ -53,7 +53,7 @@ export async function CONNECT_WALLET() {
   }
 }
 
-async function switchNetwork(chain: string, name: string) {
+export async function switchNetwork(chain: string, name: string, rpc: string) {
   try {
     await(window as any).ethereum.request({
       method: "wallet_switchEthereumChain",
@@ -68,7 +68,12 @@ async function switchNetwork(chain: string, name: string) {
             {
               chainId: chain,
               chainName: name,
-              rpcUrls: [],
+              rpcUrls: [rpc],
+              nativeCurrency: {
+                name: "UNIT",
+                symbol: "UNIT",
+                decimals: 18
+              },
             },
           ],
         });

@@ -161,6 +161,7 @@ import { h, ref, onMounted } from 'vue'
 import copy from 'copy-to-clipboard'
 import Tag from '@/components/TagComp.vue'
 import { addressCut } from '@/libs/utils'
+import { switchNetwork } from '@/libs/web3'
 import { accountTypeMaps, networkMaps } from '@/enums'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { getAccountList, getContract, addAccount, changeAccount } from '@/api'
@@ -288,6 +289,28 @@ const toSubmitBindInfo = async () => {
     }
   }
 
+  // check network
+  const { MODE: mode } = import.meta.env
+  const network = await web3.eth.net.getId()
+  if (mode === 'localhost') {
+    if (Number(network) !== 8000) {
+      await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
+      return
+    }
+  }
+  if (mode === 'testnet') {
+    if (Number(network) !== 5005) {
+      await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
+      return
+    }
+  }
+  if (mode === 'mainnet') {
+    if (Number(network) !== 5002) {
+      await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
+      return
+    }
+  }
+
   transferId.value = ''
   verifyLoading.value = true
 
@@ -305,8 +328,7 @@ const toSubmitBindInfo = async () => {
         const { uniqueId } = addRes.result
         const nickname =  Math.random().toString(36).slice(-6)
         console.log(uniqueId, [nickname, tnAccount, 0, 0, address])
-        const rRes = await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
-        console.log(rRes)
+        await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
 
         timerLoading.value = true
         window.setTimeout(() => {
