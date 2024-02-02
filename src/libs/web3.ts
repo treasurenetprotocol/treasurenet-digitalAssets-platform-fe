@@ -5,43 +5,57 @@ export async function CONNECT_WALLET() {
   let web3Provider
 
   if ((window as any).ethereum) {
-    // web3Provider = new Web3.providers.WebsocketProvider('wss://bsc.getblock.io/17f83206-a178-4914-bcaa-0a4af9120c17/mainnet/')
     web3Provider = (window as any).ethereum
+    web3Provider.on("accountsChanged", () => {
+      localStorage.removeItem("tn_jwt");
+      window.location.reload();
+    });
+
+    // web3Provider.on("chainChanged", async () => {
+    //   console.log(1111);
+    //   window.location.reload();
+    // });
 
     try {
       // user authorize.
       const acc = await web3Provider.request({ method: "eth_requestAccounts" })
       if (acc.length > 0) {
         web3 = new Web3(web3Provider)
-        web3Provider.on("accountsChanged", () => {
-          localStorage.removeItem("tn_jwt")
-          window.location.reload()
-        })
-
-        web3Provider.on("chainChanged", async () => {
-          window.location.reload()
-        })
 
         // check network
         const { MODE: mode } = import.meta.env
         const network = await web3.eth.net.getId()
+        let sRes
         if(mode === 'localhost') {
           if(Number(network) !== 8000) {
-            await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
+            const res = await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
+            if(res?.errmsg) {
+              return { errmsg: res.errmsg };
+            }else {
+              return { web3Provider, web3 };
+            }
           }
         }
         if(mode === 'testnet') {
           if (Number(network) !== 5005) {
-            await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
+            const res = await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
+            if(res?.errmsg) {
+              return { errmsg: res.errmsg };
+            }else {
+              return { web3Provider, web3 };
+            }
           }
         }
         if(mode === 'mainnet') {
           if (Number(network) !== 5002) {
-            await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
+            const res = await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
+            if(res?.errmsg) {
+              return { errmsg: res.errmsg };
+            }else {
+              return { web3Provider, web3 };
+            }
           }
         }
-
-        return { web3Provider, web3 }
       }
     } catch (error: any) {
       // authorize failed.
@@ -77,9 +91,9 @@ export async function switchNetwork(chain: string, name: string, rpc: string) {
             },
           ],
         });
-      } catch (addError) {
-        // handle "add" error
-      }
+      } catch (error: any) {}
     }
+
+    return { errmsg: switchError.message }
   }
 }
