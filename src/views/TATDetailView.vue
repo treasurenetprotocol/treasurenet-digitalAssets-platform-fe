@@ -44,7 +44,7 @@
         </template>
       </template>
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'date'">{{ realDate(record.timestamp) }}</template>
+        <template v-if="column.key === 'date'">{{ realDate(record.latest || record.timestamp) }}</template>
         <template v-else-if="column.key === 'event'">Minted by {{ eventMaps[record.type] }}</template>
         <template v-else-if="column.key === 'amount'">{{ numFormat((record.amount / 1e18).toFixed(5)) }}</template>
       </template>

@@ -24,7 +24,7 @@ export default defineConfig({
       "/api": {
         secure: false,
         changeOrigin: true,
-        target: "https://124.70.23.119:3045",
+        target: "https://124.70.23.119:3048",
       },
     },
   },

@@ -16,7 +16,7 @@
         <CaretRightOutlined :rotate="panel?.isActive ? 90 : 0" />
       </template>
 
-      <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title" :class="m.status === 0 ? 'read' : 'unread'">
+      <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title" :class="m.status === 0 ? 'read' : 'unread'" @click="change(m)">
         <div class="content">
           <p class="title">From: Treasurenet</p>
           <pre>{{ m.content }}</pre>
@@ -83,10 +83,21 @@ const readAll = async () => {
   await getList(page.value, pageSize.value)
 }
 
+const change = async (k: any)=> {
+  if(k.status === 1) {
+    listLoading.value = true
+    await setMessageStatus(k.msgID, '0')
+    await getList(page.value, pageSize.value)
+  }
+}
+
 const isHide = ref(false)
 const hideRead = async () => {
-  console.log(isHide.value)
-  await getList(page.value, pageSize.value, isHide.value ? '1' : '0')
+  if(isHide.value) {
+    await getList(page.value, pageSize.value, '1')
+  }else {
+    await getList(page.value, pageSize.value)
+  }
 }
 
 onMounted(async () => {
