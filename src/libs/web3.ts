@@ -12,7 +12,6 @@ export async function CONNECT_WALLET() {
     });
 
     // web3Provider.on("chainChanged", async () => {
-    //   console.log(1111);
     //   window.location.reload();
     // });
 

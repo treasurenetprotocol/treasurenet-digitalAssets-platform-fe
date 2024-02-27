@@ -9,7 +9,7 @@
         </div>
         <div class="item">
           <span>Type:</span>
-          <Select style="width: 80px" v-model:value="type" @change="getList('1', type, status, page, pageSize, +new Date(dateArr[0]), +new Date(dateArr[1]) + 86400000)">
+          <Select style="width: 80px" v-model:value="type" @change="filterByOther">
             <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="1">BTC</Select.Option>
             <Select.Option value="0">ETH</Select.Option>
@@ -17,7 +17,7 @@
         </div>
         <div class="item">
           <span>Status:</span>
-          <Select style="width: 120px" v-model:value="status" @change="getList('1', type, status, page, pageSize, +new Date(dateArr[0]), +new Date(dateArr[1]) + 86400000)">
+          <Select style="width: 120px" v-model:value="status" @change="filterByOther">
             <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="3">Minted</Select.Option>
             <Select.Option value="2">Verified</Select.Option>
@@ -222,6 +222,12 @@ const status = ref('9')
 const dateChange = async (d: any, dstr: [string, string]) => {
   dateArr.value = dstr
   await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 86400000)
+}
+
+// filter for type or status.
+const filterByOther = async () => {
+  page.value = 1
+  getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 86400000)
 }
 
 const page = ref(1)
