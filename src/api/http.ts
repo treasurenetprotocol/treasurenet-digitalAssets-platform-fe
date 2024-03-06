@@ -45,7 +45,7 @@ AXIOS_OPT.interceptors.response.use(
 
 export default {
   get(url: string, params?: any, headers?: any) {
-    let options: any = {}
+    const options: any = {}
 
     if (params) {
       options.params = params
@@ -64,7 +64,7 @@ export default {
     return AXIOS_OPT.post(url, data, config)
   },
   put(url: string, params?: any, headers?: any) {
-    let options: any = {}
+    const options: any = {}
     headers['content-type'] = 'application/json'
 
     if (headers) {
@@ -73,7 +73,7 @@ export default {
     return AXIOS_OPT.put(url, params, options)
   },
   delete(url: string, params?: any, headers?: any) {
-    let options: any = {}
+    const options: any = {}
 
     if (params) {
       options.params = params

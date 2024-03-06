@@ -91,7 +91,9 @@ export async function switchNetwork(chain: string, name: string, rpc: string) {
             },
           ],
         });
-      } catch (error: any) {}
+      } catch (error: any) {
+        console.error(error.message)
+      }
     }
 
     return { errmsg: switchError.message }
