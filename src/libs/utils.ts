@@ -46,9 +46,9 @@ export function numFormat(num: number | string | string[]) {
   if (!num) return "-";
 
   num = num.toString().split("."); // 分隔小数点
-  var arr = num[0].split("").reverse(); // 转换成字符数组并且倒序排列
-  var res: string[] = [];
-  for (var i = 0, len = arr.length; i < len; i++) {
+  const arr = num[0].split("").reverse(); // 转换成字符数组并且倒序排列
+  const res: string[] = [];
+  for (let i = 0, len = arr.length; i < len; i++) {
     if (i % 3 === 0 && i !== 0) {
       res.push(","); // 添加分隔符
     }
