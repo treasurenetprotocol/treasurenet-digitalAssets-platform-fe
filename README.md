@@ -15,8 +15,8 @@ Treasurenet proposes a solution for the critical lack of sustaining and tangible
 Treasurenet digital asset platform front-end code
 
 <div align="center">
-    <img alt="screenshot1" src="https://raw.githubusercontent.com/treasurenetprotocol/treasurenet-digitalAssets-platform-fe/blob/master/screenshot1.png" width="250"/>
-    <img alt="screenshot2" src="https://raw.githubusercontent.com/treasurenetprotocol/treasurenet-digitalAssets-platform-fe/blob/master/screenshot2.png" width="250"/>
+    <img alt="screenshot1" src="https://github.com/treasurenetprotocol/treasurenet-digitalAssets-platform-fe/blob/master/screenshot1.png" width="250"/>
+    <img alt="screenshot2" src="https://github.com/treasurenetprotocol/treasurenet-digitalAssets-platform-fe/blob/master/screenshot2.png" width="250"/>
 </div>
 
 ## Depends on environment
