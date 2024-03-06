@@ -9,6 +9,9 @@
     </div>
 
     <Table :columns="columns" :data-source="accList" :pagination="false" :loading="{ indicator, spinning: listLoading }">
+      <template v-slot:emptyText>
+        <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="You haven't bound your account yet, click the button to bind it." />
+      </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'account'">
           <Tooltip>
@@ -23,12 +26,15 @@
           {{ networkMaps[record.type] }}
         </template>
         <template v-else-if="column.key === 'status'">
-          <Tag bgColor="rgba(240, 66, 108, .15)" iconColor="#F0426C" v-if="record.status === 0 || record.status === 1">
-            <template #icon>
-              <img src="@/assets/imgs/not-icon.png" alt="">
-            </template>
-            <span>Not transferred</span>
-          </Tag>
+          <template v-if="record.status === 0 || record.status === 1">
+            <Tag bgColor="rgba(240, 66, 108, .15)" iconColor="#F0426C">
+              <template #icon>
+                <img src="@/assets/imgs/not-icon.png" alt="">
+              </template>
+              <span>Not transferred</span>
+            </Tag>
+            <img src="@/assets/imgs/trans-icon.png" alt="" style="width:16px;margin-left: 12px;cursor: pointer;" @click="transferOpen(record)">
+          </template>
           <Tag bgColor="rgba(255, 138, 27, .2)" iconColor="#FF8A1B" v-if="record.status === 2 || record.status === 3 || record.status === 4">
             <template #icon>
               <img src="@/assets/imgs/inpreview-icon.png" alt="">
@@ -48,13 +54,10 @@
             <span>Failed</span>
           </Tag>
         </template>
-        <template v-else-if="column.key === 'operation'">
-          <a href="javascript:;" style="font-weight:500" v-if="record.status === 0 || record.status === 1" @click="transferOpen(record)">Transfer</a>
-        </template>
       </template>
     </Table>
 
-    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+    <div style="text-align: right;margin-top: 24px;">
       <Pagination
         show-size-changer
         v-model:current="page"
@@ -81,7 +84,7 @@
 
       <div class="item">
         <img src="@/assets/imgs/btc-icon.png" alt="">
-        <h4>Ethereum system</h4>
+        <h4>Bitcoin system</h4>
         <span>Verification required</span>
         <div class="btn">
           <a href="javascript:;" class="n-btn" @click="openBindInfoBox('btc')">
@@ -92,7 +95,7 @@
     </div>
   </Modal>
 
-  <Modal v-model:open="openBindInfo" title="Bind account" :maskClosable="false" centered>
+  <Modal v-model:open="openBindInfo" title="Bind account" :maskClosable="false" @cancel="openBindInfo = false; transferId = ''" centered>
     <template #footer>
       <Button @click="openBindInfo = false; transferId = ''">Cancel</Button>
       <Button type="primary" @click="toSubmitBindInfo" :loading="verifyLoading" v-if="!transferId">To verify</Button>
@@ -122,12 +125,17 @@
         <span>*</span>
         Add Account
       </p>
-      <Input v-model:value="account" :disabled="!!transferId" placeholder="Please enter your account" />
+      <div style="display: flex;">
+        <Select style="width: 180px;border: 1px solid #d9d9d9;border-radius: 4px;margin-right: 5px;" :value="'none'" disabled>
+          <Select.Option value="none">{{ bindType === 'eth' ? 'Ethereum Account' : 'Bitcoin Account' }}</Select.Option>
+        </Select>
+        <Input v-model:value="account" :disabled="!!transferId" placeholder="Please enter your account" />
+      </div>
     </div>
     <div class="transfer">
       <div class="rule">
         Transfer:
-        <b>0.00001</b>
+        <b>0.0001</b>
         <span>{{ bindType === 'eth' ? 'ETH' : 'BTC' }}</span>
       </div>
       <div class="ads">
@@ -137,6 +145,14 @@
       </div>
     </div>
   </Modal>
+
+  <div class="loading-box" v-show="timerLoading">
+    <Spin :indicator="indicator">
+      <template #tip>
+        <p style="color:#fff;font-size: 18px;padding: 5px 12px;border-radius: 20px;background-color:#666;">Please wait for 10 seconds before the contract takes effect</p>
+      </template>
+    </Spin>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -145,10 +161,11 @@ import { h, ref, onMounted } from 'vue'
 import copy from 'copy-to-clipboard'
 import Tag from '@/components/TagComp.vue'
 import { addressCut } from '@/libs/utils'
+import { switchNetwork } from '@/libs/web3'
 import { accountTypeMaps, networkMaps } from '@/enums'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import { getAccountList, getContract, addAccount, changeAccount } from '@/api'
-import { Table, Tooltip, Modal, Input, Button, Pagination, message } from 'ant-design-vue'
+import { Table, Tooltip, Modal, Input, Button, Select, Pagination, Empty, Spin, message } from 'ant-design-vue'
 
 const web3: Web3 = new Web3((window as any).ethereum)
 const tnAccount = (await web3.eth.getAccounts())[0]
@@ -183,11 +200,6 @@ const columns = [
     title: 'Status',
     key: 'status',
     dataIndex: 'status',
-  },
-  {
-    title: 'Operation',
-    key: 'operation',
-    dataIndex: 'operation',
   }
 ]
 
@@ -214,6 +226,7 @@ const transferOpen = async (record: any) => {
   openBindInfo.value = true
   account.value = record.account
   transferId.value = record.uniqueId
+  bindType.value = record.type == 0 ? 'eth' : 'btc'
 }
 
 // set status
@@ -223,18 +236,23 @@ const setStatus = async (id?: string) => {
   const res = await changeAccount(id || transferId.value)
   if(res.code === '0') {
     transferId.value = ''
-    openBindInfo.value = false
     message.success('Submitted successfully, pending verification !')
   }else {
     message.error(res.error)
   }
+  openBindInfo.value = false
   statusLoading.value = false
+  await getList(page.value, pageSize.value)
 }
 
 // submit bind info
+const timerLoading = ref(false)
 const verifyLoading = ref(false)
 const toSubmitBindInfo = async () => {
   const address = account.value
+
+  transferId.value = ''
+
   // address verify
   if(!address) {
     message.error('Please enter your account')
@@ -264,14 +282,37 @@ const toSubmitBindInfo = async () => {
         message.error('Please enter the correct BTC address')
         return
       }
+    } else if (address.startsWith('tb')) {
+      if (address.length !== 62 && address.length !== 42) {
+        message.error('Please enter the correct BTC address')
+        return
+      }
     } else {
       message.error('Please enter the correct BTC address')
       return
     }
   }
 
-  transferId.value = ''
   verifyLoading.value = true
+
+  // check network
+  const { MODE: mode } = import.meta.env
+  const network = await web3.eth.net.getId()
+  if (mode === 'localhost') {
+    if (Number(network) !== 8000) {
+      await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
+    }
+  }
+  if (mode === 'testnet') {
+    if (Number(network) !== 5005) {
+      await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
+    }
+  }
+  if (mode === 'mainnet') {
+    if (Number(network) !== 5002) {
+      await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
+    }
+  }
 
   // save account
   const addRes = await addAccount({ type: bindType.value === 'eth' ? '0' : '1', account: address })
@@ -285,29 +326,39 @@ const toSubmitBindInfo = async () => {
 
       try {
         const { uniqueId } = addRes.result
-        console.log(uniqueId, ['ethtest2', tnAccount, 0, 0, address])
-        await contract.methods.addProducer(uniqueId, ['ethtest2', tnAccount, 0, 0, address]).call()
-
-        // reconfirm
-        Modal.confirm({
-          closable: true,
-          centered: true,
-          title: 'Confirm',
-          okText: 'Yes',
-          cancelText: 'Not yet',
-          content: 'You have transferred the token to the designated account.',
-          async onOk() {
-            await setStatus(uniqueId)
-            // message.success('Submitted successfully, pending verification !')
-            await getList(page.value, pageSize.value)
-            openBindInfo.value = false
-          },
-          async onCancel() {
-            message.success('Please operate in time, otherwise the binding will not be successful.')
-            await getList(page.value, pageSize.value)
-            openBindInfo.value = false
+        const nickname =  Math.random().toString(36).slice(-6)
+        console.log(uniqueId, [nickname, tnAccount, 0, 0, address])
+        const execContract = async () => {
+          try {
+            await contract.methods.addProducer(uniqueId, [nickname, tnAccount, 0, 0, address]).send({ from: tnAccount })
+          } catch (err: any) {
+            await execContract()
           }
-        })
+        }
+        await execContract()
+
+        timerLoading.value = true
+        window.setTimeout(() => {
+          timerLoading.value = false
+          // reconfirm
+          Modal.confirm({
+            closable: true,
+            centered: true,
+            title: 'Confirm',
+            okText: 'Yes',
+            cancelText: 'Not yet',
+            content: 'You have transferred the token to the designated account.',
+            async onOk() {
+              await setStatus(uniqueId)
+              openBindInfo.value = false
+            },
+            async onCancel() {
+              message.warning('Please operate in time, otherwise the binding will not be successful.')
+              await getList(page.value, pageSize.value)
+              openBindInfo.value = false
+            }
+          })
+        }, 10000)
       }catch(err: any) {
         message.error(err.message)
       }
@@ -466,5 +517,19 @@ onMounted(async () => {
       cursor: pointer;
     }
   }
+}
+
+.loading-box {
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  display: flex;
+  position: absolute;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, .8);
 }
 </style>

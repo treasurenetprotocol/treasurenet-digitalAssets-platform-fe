@@ -45,7 +45,7 @@ export async function getContract(name: string): Promise<any> {
   return await Promise.resolve(res);
 }
 
-export async function setMessageStatus(msgID: string, status: string): Promise<any> {
+export async function setMessageStatus(status: string, msgID?: string): Promise<any> {
   const res = await http.post("/api/messages/setStatus", { msgID, status });
   return await Promise.resolve(res);
 }

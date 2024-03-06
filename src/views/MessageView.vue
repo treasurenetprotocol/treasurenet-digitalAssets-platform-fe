@@ -16,7 +16,7 @@
         <CaretRightOutlined :rotate="panel?.isActive ? 90 : 0" />
       </template>
 
-      <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title">
+      <Collapse.Panel v-for="m in msgList" :key="m.msgID" :header="m.title" :class="m.status === 0 ? 'read' : 'unread'" @click="change(m)">
         <div class="content">
           <p class="title">From: Treasurenet</p>
           <pre>{{ m.content }}</pre>
@@ -27,14 +27,16 @@
       </Collapse.Panel>
     </Collapse>
 
-    <div style="text-align: right;" v-if="total > pageSize">
+    <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="No messages" v-if="!msgList.length" />
+
+    <div style="text-align: right;">
       <Pagination
         show-size-changer
         v-model:current="page"
         v-model:page-size="pageSize"
         :total="total"
         :show-total="(total, range) => `Total of ${total} messages`"
-        @change="(page: number, pageSize: number) => getList(page, pageSize)"
+        @change="(page: number, pageSize: number) => hideRead()"
       />
     </div>
 
@@ -46,9 +48,10 @@
 
 <script lang="ts" setup>
 import { h, ref, onMounted } from 'vue'
+import EventBus from '@/libs/eventbus'
 import { formatDate } from '@/libs/utils'
 import { getMessageList, setMessageStatus } from '@/api'
-import { Collapse, Pagination, Spin, Checkbox, message } from 'ant-design-vue'
+import { Collapse, Pagination, Spin, Checkbox, Empty, message } from 'ant-design-vue'
 import { CaretRightOutlined, LoadingOutlined, MailOutlined } from '@ant-design/icons-vue'
 
 const indicator = h(LoadingOutlined, {
@@ -73,24 +76,38 @@ const getList = async (page: number, pageSize: number, status?: string) => {
 }
 
 const readAll = async () => {
-  const ids = msgList.value.map((l) => l.msgID)
-  const rqs: Promise<any>[] = []
-  ids.forEach((id) => {
-    rqs.push(setMessageStatus(id, '0'))
-  })
-  await Promise.all(rqs)
+  await setMessageStatus('0')
   message.success('message set successfully')
+  await hideRead()
+
+  EventBus.emit('onMessageRead', 'yes')
+}
+
+const change = async (k: any)=> {
+  if(k.status === 1) {
+    listLoading.value = true
+    await setMessageStatus('0', k.msgID)
+    await hideRead()
+
+    EventBus.emit('onMessageRead', 'yes')
+  }
 }
 
 const isHide = ref(false)
 const hideRead = async () => {
-  console.log(isHide.value)
-  await getList(page.value, pageSize.value, isHide.value ? '1' : '0')
+  if(isHide.value) {
+    await getList(page.value, pageSize.value, '1')
+  }else {
+    await getList(page.value, pageSize.value)
+  }
 }
 
 onMounted(async () => {
   await getList(page.value, pageSize.value)
 })
+
+
+
 </script>
 
 <style lang="less" scoped>

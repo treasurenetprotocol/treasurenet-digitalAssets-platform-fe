@@ -7,17 +7,17 @@
       <span>Cumulative Minted TAT</span>
     </h4>
 
-    <h3>{{ numFormat((calcData.calc / 1e18).toFixed(5)) }}</h3>
+    <h3>{{ numFormat((calcData.calc / 1e18).toFixed(4)) }}</h3>
 
     <div class="mint-num">
       <span>
         Minted by BTC:
-        <b>{{ numFormat((calcData.btc / 1e18).toFixed(5)) }}</b>
+        <b>{{ numFormat((calcData.btc / 1e18).toFixed(4)) }}</b>
         <span>TAT</span>
       </span>
       <span>
         Minted by ETH:
-        <b>{{ numFormat((calcData.eth / 1e18).toFixed(5)) }}</b>
+        <b>{{ numFormat((calcData.eth / 1e18).toFixed(4)) }}</b>
         <span>TAT</span>
       </span>
     </div>
@@ -44,20 +44,20 @@
         </template>
       </template>
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'date'">{{ realDate(record.date) }}</template>
+        <template v-if="column.key === 'date'">{{ realDate(record.latest || record.timestamp) }}</template>
         <template v-else-if="column.key === 'event'">Minted by {{ eventMaps[record.type] }}</template>
-        <template v-else-if="column.key === 'amount'">{{ numFormat((record.amount / 1e18).toFixed(5)) }}</template>
+        <template v-else-if="column.key === 'amount'">{{ numFormat((record.amount / 1e18).toFixed(4)) }}</template>
       </template>
     </Table>
 
-    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+    <div style="text-align: right;margin-top: 24px;">
       <Pagination
         show-size-changer
         v-model:current="page"
         v-model:page-size="pageSize"
         :total="total"
         :show-total="(total, range) => `Total of ${total} messages`"
-        @change="(page: number, pageSize: number) => getList('2', page, pageSize)"
+        @change="(page: number, pageSize: number) => paginChange()"
       />
     </div>
   </main>
@@ -104,8 +104,10 @@ const columns = [
 
 // filter
 const date = ref<RangeValue>()
+const dateArr = ref<string[]>([])
 const dateChange = async (d: any, dstr: [string, string]) => {
-  await getList('2', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 43199000)
+  dateArr.value = dstr
+  await getList('2', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 86400000)
 }
 
 const page = ref(1)
@@ -126,6 +128,10 @@ const getList = async (queryType: string, page: number, pageSize: number, dateFr
   calcData.value.eth = list.result.minted.ethMintedAmount
   calcData.value.calc = list.result.minted.btcMintedAmount + list.result.minted.ethMintedAmount
   listLoading.value = false
+}
+
+const paginChange = async () => {
+  await getList('2', page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 86400000)
 }
 
 onMounted(async () => {

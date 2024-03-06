@@ -9,7 +9,7 @@
         </div>
         <div class="item">
           <span>Type:</span>
-          <Select style="width: 80px" v-model:value="type" @change="getList('1', type, status, page, pageSize)">
+          <Select style="width: 80px" v-model:value="type" @change="filterByOther">
             <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="1">BTC</Select.Option>
             <Select.Option value="0">ETH</Select.Option>
@@ -17,7 +17,7 @@
         </div>
         <div class="item">
           <span>Status:</span>
-          <Select style="width: 120px" v-model:value="status" @change="getList('1', type, status, page, pageSize)">
+          <Select style="width: 120px" v-model:value="status" @change="filterByOther">
             <Select.Option value="9">ALL</Select.Option>
             <Select.Option value="3">Minted</Select.Option>
             <Select.Option value="2">Verified</Select.Option>
@@ -39,10 +39,10 @@
         <template v-if="column.key === 'date'">{{ realDate(record.timestamp) }}</template>
         <template v-else-if="column.key === 'type'">{{ typeMaps[record.type] }}</template>
         <template v-else-if="column.key === 'reward'">
-          {{ numFormat((record.blockReward / 1e18).toFixed(5)) }} <span style="color:#8c8c8c">{{ typeMaps[record.type] }}</span>
+          {{ numFormat((record.blockReward / 1e18).toFixed(4)) }} <span style="color:#8c8c8c">{{ typeMaps[record.type] }}</span>
         </template>
-        <template v-else-if="column.key === 'price'">{{ numFormat(record.price.toFixed(5)) }}</template>
-        <template v-else-if="column.key === 'value'">{{ numFormat((record.amount / 1e18).toFixed(5)) }}</template>
+        <template v-else-if="column.key === 'price'">{{ numFormat(record.price.toFixed(4)) }}</template>
+        <template v-else-if="column.key === 'value'">{{ numFormat((record.amount / 1e18).toFixed(4)) }}</template>
         <template v-else-if="column.key === 'status'">
           <Tag bgColor="rgba(126, 211, 33, .2)" iconColor="#7ED321" v-if="record.status === 2">
             <template #icon>
@@ -63,14 +63,14 @@
       </template>
     </Table>
 
-    <div style="text-align: right;margin-top: 24px;" v-if="total > pageSize">
+    <div style="text-align: right;margin-top: 24px;">
       <Pagination
         show-size-changer
         v-model:current="page"
         v-model:page-size="pageSize"
         :total="total"
         :show-total="(total, range) => `Total of ${total} messages`"
-        @change="(page: number, pageSize: number) => getList('1', type, status, page, pageSize)"
+        @change="(page: number, pageSize: number) => paginChange()"
       />
     </div>
   </main>
@@ -93,6 +93,7 @@ import type { Dayjs } from 'dayjs'
 import Web3 from 'web3'
 import { h, ref, onMounted } from 'vue'
 import Tag from '@/components/TagComp.vue'
+import { switchNetwork } from '@/libs/web3'
 import { getBlockList, getContract } from '@/api'
 import { realDate, numFormat } from '@/libs/utils'
 import { LoadingOutlined } from '@ant-design/icons-vue'
@@ -164,13 +165,32 @@ const openMint = ref<boolean>(false)
 const openMintTAT = (r: any) => {
   openMint.value = !openMint.value
   record.value = r
-  mintNum.value = numFormat((r.amount / 1e18).toFixed(5))
+  mintNum.value = numFormat((r.amount / 1e18).toFixed(4))
 }
 
 // mint 
 const mintLoading = ref(false)
 let timer: any = null
 const mintTAT = async () => {
+  // check network
+  const { MODE: mode } = import.meta.env
+  const network = await web3.eth.net.getId()
+  if (mode === 'localhost') {
+    if (Number(network) !== 8000) {
+      await switchNetwork('0x1F40', 'tn local', 'https://124.70.23.119:3017')
+    }
+  }
+  if (mode === 'testnet') {
+    if (Number(network) !== 5005) {
+      await switchNetwork('0x138D', 'tn testnet', 'https://node0.testnet.treasurenet.io')
+    }
+  }
+  if (mode === 'mainnet') {
+    if (Number(network) !== 5002) {
+      await switchNetwork('0x138A', 'tn mainnet', 'https://node0.treasurenet.io')
+    }
+  }
+
   mintLoading.value = true
 
   const contractRes = await getContract(record.value.type == '0' ? 'EthData' : 'BtcData')
@@ -195,11 +215,19 @@ const mintTAT = async () => {
 }
 
 // filter
+const dateArr = ref<string[]>([])
 const date = ref<RangeValue>()
 const type = ref('9')
 const status = ref('9')
 const dateChange = async (d: any, dstr: [string, string]) => {
-  await getList('1', '9', '9', page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 43199000)
+  dateArr.value = dstr
+  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dstr[0]), +new Date(dstr[1]) + 86400000)
+}
+
+// filter for type or status.
+const filterByOther = async () => {
+  page.value = 1
+  getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 86400000)
 }
 
 const page = ref(1)
@@ -216,6 +244,10 @@ const getList = async (queryType: string, type: string, status: string, page: nu
   diaList.value = list.result.list
   total.value = list.result.total
   listLoading.value = false
+}
+
+const paginChange = async () => {
+  await getList('1', type.value, status.value, page.value, pageSize.value, +new Date(dateArr.value[0]), +new Date(dateArr.value[1]) + 86400000)
 }
 
 onMounted(async () => {
